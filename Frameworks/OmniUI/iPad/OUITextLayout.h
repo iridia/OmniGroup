@@ -16,7 +16,7 @@ extern const CGFloat OUITextLayoutUnlimitedSize;
 
 @interface OUITextLayout : OFObject
 {
-@private
+@package
     NSAttributedString *_attributedString;
     CTFrameRef _frame;
     CGSize _layoutSize;
