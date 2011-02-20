@@ -2879,6 +2879,10 @@ CGPoint closestPointInLine(CTLineRef line, CGPoint lineOrigin, CGPoint test, NSR
 {
     OBPRECONDITION(drawnFrame && !flags.textNeedsUpdate);
     
+//  If the frame is not drawn, return CGRectNULL.  Switching IMEs when the editable frame is empty triggers relayout, which untimately triggers this method.
+    if (!drawnFrame)
+    return CGRectNull;
+    
     CFArrayRef lines = CTFrameGetLines(drawnFrame);
     
     struct typographicPosition measures;
