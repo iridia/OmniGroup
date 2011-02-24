@@ -3335,7 +3335,7 @@ static BOOL addRectsToPath(CGPoint p, CGFloat width, CGFloat trailingWS, CGFloat
     r->bounds = CGRectUnion(r->bounds, highlightRect);
     
     if (r->ctxt)
-        CGContextAddRect(r->ctxt, highlightRect);
+        CGContextAddRect(r->ctxt, CGRectIntegral(highlightRect));
     
     // NSLog(@"Adding rect(me) -> %@ (raw %@)", NSStringFromCGRect(highlightRect), NSStringFromCGPoint(p));
     
@@ -3420,8 +3420,16 @@ static BOOL addRectsToPath(CGPoint p, CGFloat width, CGFloat trailingWS, CGFloat
 
 	CGContextBeginPath(ctx);
 	CGContextSetStrokeColorWithColor(ctx, markedRangeBorderColor.CGColor);
-	CGContextSetLineWidth(ctx, self.markedRangeBorderThickness);
+	
+//	Because the stroke appears on the exact path where the path is set, an 1-pixel line will draw as a blurry 2-pixel line
+//	Therefore, duplicate the width and clip the drawn area to the path; if this is already fast enough it makes the less changes
+	
+	CGContextSetLineWidth(ctx, self.markedRangeBorderThickness * 2);
+	
 	rectanglesInRange(drawnFrame, markedRange, NO, addRectsToPath, &ctxt);
+	CGContextClip(ctx);
+
+	rectanglesInRange(drawnFrame, markedRange, NO, addRectsToPath, &ctxt);	
 	CGContextStrokePath(ctx);
 
 	CGContextRestoreGState(ctx);
