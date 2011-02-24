@@ -3443,7 +3443,7 @@ static BOOL addRectsToPath(CGPoint p, CGFloat width, CGFloat trailingWS, CGFloat
             if (!CGRectIsEmpty(caretRect)) {
                 [_insertionPointSelectionColor setFill];
                 CGContextFillRect(ctx, caretRect);
-                selectionDirtyRect = [self convertRectToRenderingSpace:caretRect]; // note this method does the opposite of what its name implies
+                selectionDirtyRect = CGRectInset([self convertRectToRenderingSpace:caretRect], -1, -1); // note this method does the opposite of what its name implies
             }
         }
     }
