@@ -102,7 +102,7 @@ StaticLibraryResourceDirectories.each {|dirname|
       when /\.strings$/
         output_encoding=ENV["STRINGS_FILE_OUTPUT_ENCODING"].downcase
         ENV["ICONV"] = "/usr/bin/iconv"
-        `set -x; #{ENV["DEVELOPER_DIR"]}/Library/Xcode/Plug-ins/CoreBuildTasks.xcplugin/Contents/Resources/copystrings --validate --inputencoding utf-8 --outputencoding #{output_encoding} "#{source}" --outdir "#{File.dirname(dest_file)}"`
+        `set -x; #{ScriptDir}/copystrings --validate --inputencoding utf-8 --outputencoding #{output_encoding} "#{source}" --outdir "#{File.dirname(dest_file)}"`
       when /\.plist$/, /\.defaults$/
         `set -x; /usr/bin/plutil -convert binary1 "#{source}" -o "#{dest_file}"`
       else
