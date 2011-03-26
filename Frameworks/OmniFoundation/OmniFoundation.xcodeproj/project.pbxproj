@@ -3873,7 +3873,7 @@
 				340115E111E515DB0016ADB3 /* Coverage */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		343B363A1034F6940006290A /* Build configuration list for PBXNativeTarget "OFRandomRepeatTest" */ = {
 			isa = XCConfigurationList;
@@ -3883,7 +3883,7 @@
 				343B36381034F6900006290A /* Coverage */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		344D08D21190D48A00264D89 /* Build configuration list for PBXNativeTarget "OmniFoundationTouch" */ = {
 			isa = XCConfigurationList;
@@ -3893,7 +3893,7 @@
 				344D08BE1190D47300264D89 /* Coverage */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		345069160D747F0B004B40C2 /* Build configuration list for PBXNativeTarget "OFCrashOnExceptionTest" */ = {
 			isa = XCConfigurationList;
@@ -3903,7 +3903,7 @@
 				345069150D747ED4004B40C2 /* Coverage */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		4A4E074E08AA72B10098FF0F /* Build configuration list for PBXNativeTarget "OmniFoundation" */ = {
 			isa = XCConfigurationList;
@@ -3913,7 +3913,7 @@
 				4A4E075108AA72B10098FF0F /* Coverage */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		4A4E076108AA72B10098FF0F /* Build configuration list for PBXAggregateTarget "Tests" */ = {
 			isa = XCConfigurationList;
@@ -3923,7 +3923,7 @@
 				4A4E076408AA72B10098FF0F /* Coverage */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		4A4E077008AA72B10098FF0F /* Build configuration list for PBXNativeTarget "OFSimpleLockTest" */ = {
 			isa = XCConfigurationList;
@@ -3933,7 +3933,7 @@
 				4A4E077308AA72B10098FF0F /* Coverage */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		4A4E079208AA72B10098FF0F /* Build configuration list for PBXNativeTarget "OFDedicatedThreadSchedulerTest" */ = {
 			isa = XCConfigurationList;
@@ -3943,7 +3943,7 @@
 				4A4E079508AA72B10098FF0F /* Coverage */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		4A4E07A208AA72B10098FF0F /* Build configuration list for PBXNativeTarget "OFClobberDetectionZoneTest" */ = {
 			isa = XCConfigurationList;
@@ -3953,7 +3953,7 @@
 				4A4E07A508AA72B10098FF0F /* Coverage */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		4A4E07CA08AA72B10098FF0F /* Build configuration list for PBXNativeTarget "OFUnitTests" */ = {
 			isa = XCConfigurationList;
@@ -3963,7 +3963,7 @@
 				4A4E07CD08AA72B10098FF0F /* Coverage */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		4A4E07DB08AA72B10098FF0F /* Build configuration list for PBXNativeTarget "OFMainThreadLockTest" */ = {
 			isa = XCConfigurationList;
@@ -3973,7 +3973,7 @@
 				4A4E07DE08AA72B10098FF0F /* Coverage */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		4AD1C16408A9803A00C087FE /* Build configuration list for PBXProject "OmniFoundation" */ = {
 			isa = XCConfigurationList;
@@ -3983,7 +3983,7 @@
 				4AD1C16708A9803A00C087FE /* Coverage */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
