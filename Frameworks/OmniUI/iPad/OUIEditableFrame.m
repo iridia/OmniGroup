@@ -2973,8 +2973,12 @@ CGPoint closestPointInLine(CTLineRef line, CGPoint lineOrigin, CGPoint test, NSR
     /* shouldNotify is NO if we're being called from a UITextInput / UIKeyInput protocol method. See the comment ahead of -insertText:. */
     if (shouldNotify)
         [inputDelegate selectionWillChange:self];
+				
+    [self willChangeValueForKey:@"selectedTextRange"];
     [selection release];
     selection = [newRange retain];
+    [self didChangeValueForKey:@"selectedTextRange"];
+    
     if (typingAttributes) {
         [typingAttributes release];
         typingAttributes = nil;
