@@ -414,7 +414,7 @@ static void _checkSignaturesVsProtocol(Class cls, Protocol *protocol)
     // Recursively check protocol conformed to by the original protocol.
     {
         unsigned int protocolIndex = 0;
-        Protocol **protocols = protocol_copyProtocolList(protocol, &protocolIndex);
+        Protocol **protocols = (Protocol **)protocol_copyProtocolList(protocol, &protocolIndex);
         if (protocols) {
             while (protocolIndex--)
                 _checkSignaturesVsProtocol(cls, protocols[protocolIndex]);
@@ -430,7 +430,7 @@ static void _checkSignaturesVsProtocol(Class cls, Protocol *protocol)
 static void _checkSignaturesVsProtocols(Class cls)
 {
     unsigned int protocolIndex = 0;
-    Protocol **protocols = class_copyProtocolList(cls, &protocolIndex);
+    Protocol **protocols = (Protocol **)class_copyProtocolList(cls, &protocolIndex);
     if (protocols) {
         while (protocolIndex--)
             _checkSignaturesVsProtocol(cls, protocols[protocolIndex]);
@@ -532,7 +532,7 @@ static void _checkForMethodsInDeprecatedProtocols(void)
     
     BOOL oneDeprecatedProtocolFound = NO;
     unsigned int protocolIndex = 0;
-    Protocol **protocols = objc_copyProtocolList(&protocolIndex);
+    Protocol **protocols = (Protocol **)objc_copyProtocolList(&protocolIndex);
     if (protocols) {
         while (protocolIndex--) {
             Protocol *protocol = protocols[protocolIndex];
