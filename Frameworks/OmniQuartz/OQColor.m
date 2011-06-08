@@ -1157,7 +1157,11 @@ static void OQColorInitPlatformColor(OQColor *self)
 - (void)set;
 {
     OBPRECONDITION(_platformColor);
-    [_platformColor set];
+#if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
+    [(UIColor *)_platformColor set];
+#else
+    [(NSColor *)_platformColor set];
+#endif
 }
 
 - (BOOL)isEqual:(id)otherObject;
