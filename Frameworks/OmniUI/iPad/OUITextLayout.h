@@ -39,8 +39,12 @@ extern CGRect OUITextLayoutMeasureFrame(CTFrameRef frame, BOOL includeTrailingWh
 extern CGPoint OUITextLayoutOrigin(CGRect typographicFrame, UIEdgeInsets textInset, // in text coordinates
                                    CGRect bounds, // view rect we want to draw in
                                    CGFloat scale); // scale factor from text to view
-extern void OUITextLayoutDrawFrame(CGContextRef ctx, CTFrameRef frame, CGRect bounds, CGPoint layoutOrigin);
 extern void OUITextLayoutFixupParagraphStyles(NSMutableAttributedString *content);
+
+//	OUITextLayoutDrawFrame now calls OUITextLayoutDrawBackgroundsInFrame() and OUITextLayoutDrawTextAndAttachmentsFrame(), to help bringing the background below the selection in case of OUIEditableFrame.
+extern void OUITextLayoutDrawFrame(CGContextRef ctx, CTFrameRef frame, CGRect bounds, CGPoint layoutOrigin);
+extern void OUITextLayoutDrawBackgroundsInFrame(CGContextRef ctx, CTFrameRef frame, CGRect bounds, CGPoint layoutOrigin);
+extern void OUITextLayoutDrawTextAndAttachmentsInFrame(CGContextRef ctx, CTFrameRef frame, CGRect bounds, CGPoint layoutOrigin);
 
 extern CTFontRef OUIGlobalDefaultFont(void);
 

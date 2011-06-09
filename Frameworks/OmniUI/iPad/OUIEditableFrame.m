@@ -1082,16 +1082,17 @@ static BOOL _recognizerTouchedView(UIGestureRecognizer *recognizer, UIView *view
     }
     
     /* We want to draw any range selections under the text, and we want to draw insertion carets (non-range selections) and markedText hairlines over the text. */
+		
+		//	TODO: Separate background drawing from OUITextLayoutDrawFrame()
+		//	TODO: Maybe use a shape layer for selection
     
+		OUITextLayoutDrawBackgroundsInFrame(ctx, drawnFrame, self.bounds, layoutOrigin);
     [self _drawSelectionInContext:ctx];
-    
     [self _drawMarkedRangeBackground:ctx];
-    
-    OUITextLayoutDrawFrame(ctx, drawnFrame, self.bounds, layoutOrigin);
-
+    OUITextLayoutDrawTextAndAttachmentsInFrame(ctx, drawnFrame, self.bounds, layoutOrigin);
     [self _drawMarkedRangeBorder:ctx];
-    
     [self _drawDecorations:ctx];
+		
 }
 
 #pragma mark -

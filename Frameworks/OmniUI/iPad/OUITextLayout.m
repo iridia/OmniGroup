@@ -263,104 +263,122 @@ CGPoint OUITextLayoutOrigin(CGRect typographicFrame, UIEdgeInsets textInset, // 
 
 void OUITextLayoutDrawFrame(CGContextRef ctx, CTFrameRef frame, CGRect bounds, CGPoint layoutOrigin)
 {
-    CGContextSetTextPosition(ctx, 0, 0);
-    CGContextSetTextMatrix(ctx, CGAffineTransformIdentity);
-    
-    CGContextTranslateCTM(ctx, layoutOrigin.x, layoutOrigin.y);
+
+	OUITextLayoutDrawBackgroundsInFrame(ctx, frame, bounds, layoutOrigin);
+	OUITextLayoutDrawTextAndAttachmentsInFrame(ctx, frame, bounds, layoutOrigin);
+
+}
+
+void OUITextLayoutDrawBackgroundsInFrame(CGContextRef ctx, CTFrameRef frame, CGRect bounds, CGPoint layoutOrigin)
+{
+
+	CGContextSetTextPosition(ctx, 0, 0);
+	CGContextSetTextMatrix(ctx, CGAffineTransformIdentity);
+	CGContextTranslateCTM(ctx, layoutOrigin.x, layoutOrigin.y);
+	CFIndex lineIndex = 0;
 		
+	for (id aLine in (NSArray *)CTFrameGetLines(frame)) {
 		
-		CFIndex lineIndex = 0;
+		for (id aRun in (NSArray *)CTLineGetGlyphRuns((CTLineRef)aLine)) {
 		
-		lineIndex = 0;
-		for (id aLine in (NSArray *)CTFrameGetLines(frame)) {
+			CFDictionaryRef attributes = CTRunGetAttributes((CTRunRef)aRun);
+			if (!attributes) continue;
 			
-			for (id aRun in (NSArray *)CTLineGetGlyphRuns((CTLineRef)aLine)) {
+			CGColorRef backgroundColor = (CGColorRef)CFDictionaryGetValue(attributes, OABackgroundColorAttributeName);
+			if (!backgroundColor) continue;
 			
-				CFDictionaryRef attributes = CTRunGetAttributes((CTRunRef)aRun);
-				if (!attributes) continue;
-				
-				CGColorRef backgroundColor = (CGColorRef)CFDictionaryGetValue(attributes, OABackgroundColorAttributeName);
-				if (!backgroundColor) continue;
-				
-				CGPoint lineOrigin;
-				CTFrameGetLineOrigins(frame, CFRangeMake(lineIndex, 1), &lineOrigin);
-			
-				CGFloat ascent, descent, leading;
-				double width = CTRunGetTypographicBounds((CTRunRef)aRun, CFRangeMake(0, 0), &ascent, &descent, &leading);
-				
-				const CGPoint *positions = CTRunGetPositionsPtr((CTRunRef)aRun);
-				CGRect cellFrame = CGRectMake(lineOrigin.x + positions[0].x, lineOrigin.y + positions[0].y, width, ascent + descent);
-				
-				CGContextSaveGState(ctx);
-				CGContextSetFillColorWithColor(ctx, backgroundColor);
-				CGContextFillRect(ctx, cellFrame);
-				CGContextRestoreGState(ctx);
-			
-			}
+			CGPoint lineOrigin;
+			CTFrameGetLineOrigins(frame, CFRangeMake(lineIndex, 1), &lineOrigin);
 		
-			lineIndex ++;
+			CGFloat ascent, descent, leading;
+			double width = CTRunGetTypographicBounds((CTRunRef)aRun, CFRangeMake(0, 0), &ascent, &descent, &leading);
 			
+			const CGPoint *positions = CTRunGetPositionsPtr((CTRunRef)aRun);
+			CGRect cellFrame = CGRectIntegral(CGRectMake(lineOrigin.x + positions[0].x, lineOrigin.y + positions[0].y - descent, width, ascent + descent));
+			
+			CGContextSaveGState(ctx);
+			CGContextSetFillColorWithColor(ctx, backgroundColor);
+			CGContextFillRect(ctx, cellFrame);
+			CGContextRestoreGState(ctx);
+		
 		}
-        
-    CTFrameDraw(frame, ctx);
 
-    // TODO: Instead of passing in the string, add a function to build an array of CTRunRefs that actually have an attachment and cache that? OTOH, maybe we should just avoid drawing if this is slow!
-    CFArrayRef lines = CTFrameGetLines(frame);
+		lineIndex ++;
 		
-		lineIndex = CFArrayGetCount(lines);
-    while (lineIndex--) {
-        CTLineRef line = CFArrayGetValueAtIndex(lines, lineIndex);
-        CFArrayRef runs = CTLineGetGlyphRuns(line);
-        CFIndex runIndex = CFArrayGetCount(runs);
-        while (runIndex--) {
-            CTRunRef run = CFArrayGetValueAtIndex(runs, runIndex);
-            CFRange range = CTRunGetStringRange(run);
+	}
+	
+	CGContextTranslateCTM(ctx, -layoutOrigin.x, -layoutOrigin.y);
+	
+}
 
-            //NSLog(@"line %p run %p range %ld/%ld", line, run, range.location, range.length);
-            
-            if (range.length != 1)
-                continue;
-            
-            CFDictionaryRef attributes = CTRunGetAttributes(run);
-            if (!attributes)
-                continue;
-            
-            CTRunDelegateRef runDelegate = CFDictionaryGetValue(attributes, kCTRunDelegateAttributeName);
-            //NSLog(@"  runDelegate %p", runDelegate);
-            //NSLog(@"  attributes %@", attributes);
-            
-            if (runDelegate) {
-                OATextAttachment *attachment = (OATextAttachment *)CTRunDelegateGetRefCon(runDelegate);
-                OBASSERT([attachment isKindOfClass:[OATextAttachment class]]);
-                
-                OATextAttachmentCell *cell = attachment.attachmentCell;
-                OBASSERT(cell);
-                OBASSERT(CTRunGetGlyphCount(run) == 1);
-                
-                CGFloat ascent, descent, leading;
-                double width = CTRunGetTypographicBounds(run, CFRangeMake(0, 0), &ascent, &descent, &leading);
-                //NSLog(@"  typo width:%f ascent:%f descent:%f leading:%f", width, ascent, descent, leading);
+void OUITextLayoutDrawTextAndAttachmentsInFrame(CGContextRef ctx, CTFrameRef frame, CGRect bounds, CGPoint layoutOrigin)
+{
 
-                const CGPoint *positions = CTRunGetPositionsPtr(run);
-                //NSLog(@"  glyph position %@", NSStringFromCGPoint(positions[0]));
+	CGContextSetTextPosition(ctx, 0, 0);
+	CGContextSetTextMatrix(ctx, CGAffineTransformIdentity);
+	CGContextTranslateCTM(ctx, layoutOrigin.x, layoutOrigin.y);
+	
+	CFArrayRef lines = CTFrameGetLines(frame);
+	CFIndex lineIndex = 0;
+	CTFrameDraw(frame, ctx);
+	
+	// TODO: Instead of passing in the string, add a function to build an array of CTRunRefs that actually have an attachment and cache that? OTOH, maybe we should just avoid drawing if this is slow!
 
-                CGPoint lineOrigin;
-                CTFrameGetLineOrigins(frame, CFRangeMake(lineIndex, 1), &lineOrigin);
-                //NSLog(@"  lineOrigin %@", NSStringFromCGPoint(lineOrigin));
-		
-								CGPoint baselineOffset = [cell cellBaselineOffset];
-                
-                // The glyph positions returned from CTRunGetPositions() are relative to the line origin.
-                CGRect cellFrame = CGRectMake(lineOrigin.x + positions[0].x + baselineOffset.x, lineOrigin.y + positions[0].y + baselineOffset.y, width, ascent + descent);
-                
-                UIGraphicsPushContext(ctx);
-                [cell drawWithFrame:cellFrame inView:nil];
-                UIGraphicsPopContext();
-            }
-        }
-    }
-    
-    CGContextTranslateCTM(ctx, -layoutOrigin.x, -layoutOrigin.y);
+	lineIndex = CFArrayGetCount(lines);
+	while (lineIndex--) {
+			CTLineRef line = CFArrayGetValueAtIndex(lines, lineIndex);
+			CFArrayRef runs = CTLineGetGlyphRuns(line);
+			CFIndex runIndex = CFArrayGetCount(runs);
+			while (runIndex--) {
+					CTRunRef run = CFArrayGetValueAtIndex(runs, runIndex);
+					CFRange range = CTRunGetStringRange(run);
+
+					//NSLog(@"line %p run %p range %ld/%ld", line, run, range.location, range.length);
+					
+					if (range.length != 1)
+							continue;
+					
+					CFDictionaryRef attributes = CTRunGetAttributes(run);
+					if (!attributes)
+							continue;
+					
+					CTRunDelegateRef runDelegate = CFDictionaryGetValue(attributes, kCTRunDelegateAttributeName);
+					//NSLog(@"  runDelegate %p", runDelegate);
+					//NSLog(@"  attributes %@", attributes);
+					
+					if (runDelegate) {
+							OATextAttachment *attachment = (OATextAttachment *)CTRunDelegateGetRefCon(runDelegate);
+							OBASSERT([attachment isKindOfClass:[OATextAttachment class]]);
+							
+							OATextAttachmentCell *cell = attachment.attachmentCell;
+							OBASSERT(cell);
+							OBASSERT(CTRunGetGlyphCount(run) == 1);
+							
+							CGFloat ascent, descent, leading;
+							double width = CTRunGetTypographicBounds(run, CFRangeMake(0, 0), &ascent, &descent, &leading);
+							//NSLog(@"  typo width:%f ascent:%f descent:%f leading:%f", width, ascent, descent, leading);
+
+							const CGPoint *positions = CTRunGetPositionsPtr(run);
+							//NSLog(@"  glyph position %@", NSStringFromCGPoint(positions[0]));
+
+							CGPoint lineOrigin;
+							CTFrameGetLineOrigins(frame, CFRangeMake(lineIndex, 1), &lineOrigin);
+							//NSLog(@"  lineOrigin %@", NSStringFromCGPoint(lineOrigin));
+
+							CGPoint baselineOffset = [cell cellBaselineOffset];
+							
+							// The glyph positions returned from CTRunGetPositions() are relative to the line origin.
+							CGRect cellFrame = CGRectMake(lineOrigin.x + positions[0].x + baselineOffset.x, lineOrigin.y + positions[0].y + baselineOffset.y, width, ascent + descent);
+							
+							UIGraphicsPushContext(ctx);
+							[cell drawWithFrame:cellFrame inView:nil];
+							UIGraphicsPopContext();
+					}
+			}
+	}
+
+	CGContextTranslateCTM(ctx, -layoutOrigin.x, -layoutOrigin.y);
+	
 }
 
 /* Fix up paragraph styles. We want any paragraph to have only one paragraph style associated with it. */
