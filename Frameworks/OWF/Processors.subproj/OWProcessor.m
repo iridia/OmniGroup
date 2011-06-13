@@ -1,4 +1,4 @@
-// Copyright 1997-2005, 2007, 2010 Omni Development, Inc.  All rights reserved.
+// Copyright 1997-2005, 2007, 2010-2011 Omni Development, Inc.  All rights reserved.
 //
 // This software may only be used and reproduced according to the
 // terms in the file OmniSourceLicense.html, which should be
@@ -87,13 +87,11 @@ unlockAndReturn:
     static OFMessageQueue *processorQueue = nil;
 
     if (processorQueue == nil) {
-        NSInteger threadCount;
-
-        threadCount = [[NSUserDefaults standardUserDefaults] integerForKey:@"OWProcessorThreadCount"];
+        NSInteger threadCount = [[NSUserDefaults standardUserDefaults] integerForKey:@"OWProcessorThreadCount"];
         if (threadCount <= 0)
             threadCount = 12;
 #if defined(DEBUG_kc) || defined(DEBUG_wiml)
-        NSLog(@"OWProcessor: Using %d threads", threadCount);
+        NSLog(@"OWProcessor: Using %ld threads", threadCount);
 #endif
         processorQueue = [[OFMessageQueue alloc] init];
         [processorQueue startBackgroundProcessors:threadCount];
@@ -138,7 +136,7 @@ unlockAndReturn:
 
 - initWithContent:(OWContent *)initialContent context:(id <OWProcessorContext>)aPipeline;
 {
-    if (![super init])
+    if (!(self = [super init]))
 	return nil;
     
     OFSimpleLockInit(&displayablesSimpleLock);
@@ -268,12 +266,12 @@ unlockAndReturn:
     return [pipeline firstBytesDate];
 }
 
-- (unsigned int)bytesProcessed;
+- (NSUInteger)bytesProcessed;
 {
     return [pipeline bytesProcessed];
 }
 
-- (unsigned int)totalBytes;
+- (NSUInteger)totalBytes;
 {
     return [pipeline totalBytes];
 }

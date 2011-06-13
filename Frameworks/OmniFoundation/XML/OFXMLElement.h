@@ -66,18 +66,19 @@ typedef void (*OFXMLElementApplier)(OFXMLElement *element, void *context);
 - (void) setAttribute: (NSString *) name integer: (int) value;
 - (void) setAttribute: (NSString *) name real: (float) value;  // "%g"
 - (void) setAttribute: (NSString *) name real: (float) value format: (NSString *) formatString;
-- (void) setAttribute: (NSString *) name double: (double) value;  // "%g"
+- (void) setAttribute: (NSString *) name double: (double) value;  // "%.15g"
 - (void) setAttribute: (NSString *) name double: (double) value format: (NSString *) formatString;
 
 - (NSString *)stringValueForAttributeNamed:(NSString *)name defaultValue:(NSString *)defaultValue;
 - (int)integerValueForAttributeNamed:(NSString *)name defaultValue:(int)defaultValue;
 - (float)realValueForAttributeNamed:(NSString *)name defaultValue:(float)defaultValue;
+- (double)doubleValueForAttributeNamed:(NSString *)name defaultValue:(double)defaultValue;
 
 - (OFXMLElement *)appendElement:(NSString *)elementName containingString:(NSString *)contents;
 - (OFXMLElement *)appendElement:(NSString *)elementName containingInteger:(int)contents;
 - (OFXMLElement *)appendElement:(NSString *)elementName containingReal:(float)contents; // "%g"
 - (OFXMLElement *)appendElement:(NSString *)elementName containingReal:(float)contents format:(NSString *)formatString;
-- (OFXMLElement *)appendElement:(NSString *)elementName containingDouble:(double)contents; // "%g"
+- (OFXMLElement *)appendElement:(NSString *)elementName containingDouble:(double)contents; // "%.15g"
 - (OFXMLElement *)appendElement:(NSString *)elementName containingDouble:(double) contents format:(NSString *) formatString;
 - (OFXMLElement *)appendElement:(NSString *)elementName containingDate:(NSDate *)date;
 - (void) removeAttributeNamed: (NSString *) name;
@@ -94,8 +95,9 @@ typedef void (*OFXMLElementApplier)(OFXMLElement *element, void *context);
 
 @end
 
+#import <OmniFoundation/OFXMLBuffer.h>
 @interface NSObject (OFXMLWriting)
-- (BOOL)appendXML:(struct _OFXMLBuffer *)xml withParentWhiteSpaceBehavior:(OFXMLWhitespaceBehaviorType)parentBehavior document:(OFXMLDocument *)doc level:(unsigned int)level error:(NSError **)outError;
+- (BOOL)appendXML:(OFXMLBuffer)xml withParentWhiteSpaceBehavior:(OFXMLWhitespaceBehaviorType)parentBehavior document:(OFXMLDocument *)doc level:(unsigned int)level error:(NSError **)outError;
 - (BOOL)xmlRepresentationCanContainChildren;
 - (NSObject *)copyFrozenElement;
 @end

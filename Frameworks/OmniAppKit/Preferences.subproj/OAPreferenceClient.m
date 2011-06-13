@@ -122,6 +122,7 @@ RCS_ID("$Id$")
 // API
 
 @synthesize title = _title;
+@synthesize controller = _nonretained_controller;
 
 /*" The controlBox outlet points to the box that will be transferred into the Preferences window when this preference client is selected. "*/
 - (NSView *)controlBox;
@@ -171,23 +172,6 @@ RCS_ID("$Id$")
     }
 
     return [self hasUnappliedChanges]; // Checks if there are editors active
-}
-
-/*" Prompts the user for a directory (using an open panel), then updates the text field to display it and calls -setValueForSender: specifying that field as the sender. "*/
-- (void)pickDirectoryForTextField:(NSTextField *)textField;
-{
-    NSOpenPanel *openPanel = [NSOpenPanel openPanel];
-    [openPanel setCanChooseDirectories:YES];
-    [openPanel setCanChooseFiles:NO];
-    [openPanel setAllowedFileTypes:nil];
-    if ([openPanel runModal] != NSFileHandlingPanelOKButton)
-	return;
-    
-    /* TODO: Should we rewrite this to be asynchronous and use a completion handler? Must check where it's invoked. */
-    
-    NSString *directory = [[openPanel filenames] objectAtIndex: 0];
-    [textField setStringValue:directory];
-    [self setValueForSender:textField];
 }
 
 - (void)resetFloatValueToDefaultNamed:(NSString *)defaultName inTextField:(NSTextField *)textField;

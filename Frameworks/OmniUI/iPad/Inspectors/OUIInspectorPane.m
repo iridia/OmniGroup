@@ -1,4 +1,4 @@
-// Copyright 2010 The Omni Group.  All rights reserved.
+// Copyright 2010-2011 The Omni Group. All rights reserved.
 //
 // This software may only be used and reproduced according to the
 // terms in the file OmniSourceLicense.html, which should be
@@ -15,12 +15,21 @@
 
 RCS_ID("$Id$");
 
+OBDEPRECATED_METHODS(OUIInspectorPane)
+- (void)updateInterfaceFromInspectedObjects; // -> -updateInterfaceFromInspectedObjects:
+@end
+
 @implementation OUIInspectorPane
 
 - (void)dealloc;
 {
     [_inspectedObjects release];
     [super dealloc];
+}
+
+- (BOOL)inInspector;
+{
+    return _nonretained_inspector != nil;
 }
 
 @synthesize inspector = _nonretained_inspector;
@@ -34,7 +43,12 @@ RCS_ID("$Id$");
 
 @synthesize inspectedObjects = _inspectedObjects;
 
-- (void)updateInterfaceFromInspectedObjects;
+- (void)inspectorWillShow:(OUIInspector *)inspector;
+{
+    // For subclasses
+}
+
+- (void)updateInterfaceFromInspectedObjects:(OUIInspectorUpdateReason)reason;
 {
     // For subclasses
 }
@@ -48,7 +62,14 @@ RCS_ID("$Id$");
     
     [super viewWillAppear:animated];
     
-    [self updateInterfaceFromInspectedObjects];
+    [self updateInterfaceFromInspectedObjects:OUIInspectorUpdateReasonDefault];
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{
+    [super viewWillDisappear:animated];
+    
+    [[self view] endEditing:YES];
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation;

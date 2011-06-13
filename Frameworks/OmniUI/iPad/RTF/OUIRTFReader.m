@@ -349,8 +349,9 @@ static NSMutableDictionary *KeywordActions;
 
 - (id)_initWithRTFString:(NSString *)rtfString;
 {
-    [super init];
-
+    if (!(self = [super init]))
+        return nil;
+    
     _attributedString = [[NSMutableAttributedString alloc] init];
     _scanner = [[OFStringScanner alloc] initWithString:rtfString];
     _currentState = [[OUIRTFReaderState alloc] init];
@@ -441,6 +442,7 @@ static NSMutableDictionary *KeywordActions;
 - (void)_actionReadColorTable;
 {
     [self _actionSkipDestination]; // Don't let any text from the color table slip into the output stream
+    [self _resetCurrentColorTableColor];
     [self _parseRTFGroupWithSemicolonAction:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_addColorTableEntry)] autorelease]];
 }
 
@@ -530,7 +532,7 @@ static NSMutableDictionary *KeywordActions;
 {
     CGColorRef color = [self _colorAtIndex:colorTableIndex];
 #ifdef DEBUG_RTF_READER
-    NSLog(@"Ignoring background color: %@ (%@)", (id)color, [(id)color class]);
+    NSLog(@"Setting background color: %@ (%@)", (id)color, [(id)color class]);
 #endif
     _currentState.backgroundColor = (id)color;
 }
@@ -574,7 +576,8 @@ static NSMutableDictionary *KeywordActions;
     _currentState.fontNumber = value;
     _currentState->_stringEncoding = [self _fontEncodingAtIndex:value];
 #ifdef DEBUG_RTF_READER
-    NSLog(@"Changed font number to %d (string encoding %lu=[%@])", value, _currentState->_stringEncoding, CFStringGetNameOfEncoding(_currentState->_stringEncoding));
+    CFStringRef encodingName = CFStringGetNameOfEncoding(_currentState->_stringEncoding);
+    NSLog(@"Changed font number to %d (string encoding %@=[%@])", value, (NSString *)encodingName, CFStringGetNameOfEncoding(_currentState->_stringEncoding));
 #endif
 }
 
@@ -899,7 +902,7 @@ static NSMutableDictionary *KeywordActions;
 
     [_foregroundColor release];
     _foregroundColor = [newColor retain];
-
+    
     [self _resetCache];
 }
 
@@ -912,10 +915,10 @@ static NSMutableDictionary *KeywordActions;
 {
     if (_backgroundColor == newColor)
         return;
-
+    
     [_backgroundColor release];
     _backgroundColor = [newColor retain];
-
+    
     [self _resetCache];
 }
 
@@ -1037,10 +1040,9 @@ static NSMutableDictionary *KeywordActions;
             if (_foregroundColor != NULL)
                 [_cachedStringAttributes setObject:_foregroundColor forKey:(NSString *)kCTForegroundColorAttributeName];
             if (_backgroundColor != NULL)
-                [_cachedStringAttributes setObject:_backgroundColor forKey:(NSString *)OABackgroundColorAttributeName];
+                [_cachedStringAttributes setObject:_backgroundColor forKey:OABackgroundColorAttributeName];
 #ifdef DEBUG_RTF_READER
-            NSLog(@"-stringAttributes: foregroundColor=%@", [OUIRTFReader debugStringForColor:_foregroundColor]);
-            NSLog(@"-stringAttributes: backgroundColor=%@", [OUIRTFReader debugStringForColor:_backgroundColor]);
+            NSLog(@"-stringAttributes: foregroundColor=%@ backgroundColor=%@", [OUIRTFReader debugStringForColor:_foregroundColor], [OUIRTFReader debugStringForColor:_backgroundColor]);
 #endif
             if ((_underline & 0xFF) != 0)
                 [_cachedStringAttributes setUnsignedIntValue:_underline forKey:(NSString *)kCTUnderlineStyleAttributeName];
