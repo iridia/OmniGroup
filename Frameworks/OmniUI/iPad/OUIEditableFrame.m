@@ -794,7 +794,7 @@ static BOOL _rangeIsInsertionPoint(OUIEditableFrame *self, UITextRange *r)
     OBPRECONDITION([r isKindOfClass:[OUEFTextRange class]]);
     
     if (r == self->selection)
-        return YES;
+        return [r isEmpty]; //YES;
     
     return [r isEmpty] && [(OUEFTextRange *)r isEqualToRange:self->selection];
 }
