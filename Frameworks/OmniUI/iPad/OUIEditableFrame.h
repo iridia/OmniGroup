@@ -187,5 +187,8 @@
 @property (nonatomic, readwrite, retain) UIColor *markedRangeBackgroundColor;
 @property (nonatomic, readwrite, assign) CGFloat markedRangeBorderThickness;
 
+//	Override to inject custom content thru UIKeyInput events
+- (NSAttributedString *) insertedAttributedStringForText:(NSString *)text;
+
 @end
 

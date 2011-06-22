@@ -2205,14 +2205,20 @@ enum {
     if (!beforeMutate(self, _cmd, options))
         return;
     
-    NSAttributedString *insertThis = [[NSAttributedString alloc] initWithString:text attributes:[self typingAttributes]];
+    NSAttributedString *insertThis = [[self insertedAttributedStringForText:text] retain];
     [_content replaceCharactersInRange:replaceRange withAttributedString:insertThis];
     [insertThis release];
     afterMutate(self, _cmd, options);
-    [self _setSelectionToIndex: ( replaceRange.location + [text length] )];
+    [self _setSelectionToIndex: ( replaceRange.location + [insertThis length] )];
     notifyAfterMutate(self, _cmd, options);
     
     [self setNeedsDisplay];
+}
+
+- (NSAttributedString *) insertedAttributedStringForText:(NSString *)text {
+
+	return [[[NSAttributedString alloc] initWithString:text attributes:[self typingAttributes]] autorelease];
+
 }
 
 - (void)deleteBackward;
