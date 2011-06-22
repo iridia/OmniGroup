@@ -1668,33 +1668,28 @@ static BOOL _recognizerTouchedView(UIGestureRecognizer *recognizer, UIView *view
 
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
 {
-
-	NSLog(@"hit test %@ with event %@", NSStringFromCGPoint(point), event);
-
     // We want our thumbs to receive touches even when they extend a bit outside our area.
     
     UIView *hitStartThumb = startThumb? [startThumb hitTest:[self convertPoint:point toView:startThumb] withEvent:event] : nil;
     UIView *hitEndThumb = endThumb? [endThumb hitTest:[self convertPoint:point toView:endThumb] withEvent:event] : nil;
 
-		if (startThumb) NSLog(@"startThumb %@, hitStartThumb %@, hitting %@", startThumb, hitStartThumb, NSStringFromCGPoint([startThumb convertPoint:point fromView:self]));
-		if (endThumb) NSLog(@"endThumb %@, hitEndThumb %@, hitting %@", endThumb, hitEndThumb, NSStringFromCGPoint([endThumb convertPoint:point fromView:self]));
-    
     if (hitStartThumb && hitEndThumb) {
+		
         // Direct touches to one thumb or the other depending on closeness, ignoring their z-order.
         // (This comes into play when the thumbs are close enough to each other that their areas overlbnap.)
         CGFloat dStart = [startThumb distanceFromPoint:point];
         CGFloat dEnd = [endThumb distanceFromPoint:point];
-        
-        NSLog(@"start dist: %f, end dist: %f", dStart, dEnd);
-        
+
         if (dStart < dEnd)
             return hitStartThumb;
         else
             return hitEndThumb;
-    } else if (hitStartThumb)
+						
+    } else if (hitStartThumb) {
         return hitStartThumb;
-    else if (hitEndThumb)
+    } else if (hitEndThumb) {
         return hitEndThumb;
+		}
     
     // We also want our autocomplete view to receive touches even when it's outside our view
     for (UIView *subview in [self subviews]) {
