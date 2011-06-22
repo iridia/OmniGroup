@@ -22,6 +22,10 @@
 
 RCS_ID("$Id$");
 
+@interface OUITextThumb () <UIGestureRecognizerDelegate>
+
+@end
+
 @implementation OUITextThumb
 
 - (id)initWithFrame:(CGRect)frame;
@@ -42,10 +46,15 @@ RCS_ID("$Id$");
     UIPanGestureRecognizer *dragMe = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(_dragged:)];
     dragMe.minimumNumberOfTouches = 1;
     dragMe.maximumNumberOfTouches = 1;
-    dragMe.delaysTouchesBegan = YES;
+    dragMe.delaysTouchesBegan = NO;
+		dragMe.delaysTouchesEnded = NO;
+		dragMe.cancelsTouchesInView = NO;
     dragMe.enabled = NO; // Will be enabled & disabled in our -setHidden: implementation
+		dragMe.delegate = self;
     
-    [self addGestureRecognizer:dragMe];
+    //[self addGestureRecognizer:dragMe];
+		self.userInteractionEnabled = NO;
+		
     [dragMe release];
     
     return self;
@@ -181,8 +190,10 @@ RCS_ID("$Id$");
     } else {
         dy = 0;
     }
+		
+		CGFloat returned = sqrtf(powf(p.x, 2) + powf(dy, 2));
 
-    return ( dy*dy ) + ( p.x * p.x );
+		return returned;
 }
 
 - (void)_dragged:(UIPanGestureRecognizer *)gestureRecognizer;

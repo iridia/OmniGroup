@@ -10,6 +10,7 @@
 #import <UIKit/UIView.h>
 
 @class OUIEditableFrame;
+@class OUITextThumb;
 
 @interface OUITextThumb : UIView
 {

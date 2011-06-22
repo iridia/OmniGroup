@@ -107,7 +107,7 @@
     
     /* Gesture recognizers: we hold on to these so we can enable and disable them when we gain/lose first responder status */
     UIGestureRecognizer *focusRecognizer;
-#define EF_NUM_ACTION_RECOGNIZERS 4
+#define EF_NUM_ACTION_RECOGNIZERS 5
     UIGestureRecognizer *actionRecognizers[EF_NUM_ACTION_RECOGNIZERS];
     
     /* A system-provided input delegate is assigned when the system is interested in input changes. */

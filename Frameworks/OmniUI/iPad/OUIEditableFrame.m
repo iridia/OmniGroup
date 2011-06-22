@@ -1656,20 +1656,36 @@ static BOOL _recognizerTouchedView(UIGestureRecognizer *recognizer, UIView *view
 //    return [startThumb pointInside:point withEvent:event] || [endThumb pointInside:point withEvent:event] || [super pointInside:point withEvent:event];
 //}
 
+- (BOOL) textThumb:(OUITextThumb *)thumb shouldReceiveTouch:(UITouch *)aTouch {
+
+	UIView *probablyAnyTextThumb = [self hitTest:[aTouch locationInView:self] withEvent:nil];
+	if (probablyAnyTextThumb == thumb)
+	return YES;
+	
+	return NO;
+
+}
+
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
 {
+
+	NSLog(@"hit test %@ with event %@", NSStringFromCGPoint(point), event);
+
     // We want our thumbs to receive touches even when they extend a bit outside our area.
     
     UIView *hitStartThumb = startThumb? [startThumb hitTest:[self convertPoint:point toView:startThumb] withEvent:event] : nil;
     UIView *hitEndThumb = endThumb? [endThumb hitTest:[self convertPoint:point toView:endThumb] withEvent:event] : nil;
+
+		if (startThumb) NSLog(@"startThumb %@, hitStartThumb %@, hitting %@", startThumb, hitStartThumb, NSStringFromCGPoint([startThumb convertPoint:point fromView:self]));
+		if (endThumb) NSLog(@"endThumb %@, hitEndThumb %@, hitting %@", endThumb, hitEndThumb, NSStringFromCGPoint([endThumb convertPoint:point fromView:self]));
     
     if (hitStartThumb && hitEndThumb) {
         // Direct touches to one thumb or the other depending on closeness, ignoring their z-order.
-        // (This comes into play when the thumbs are close enough to each other that their areas overlap.)
+        // (This comes into play when the thumbs are close enough to each other that their areas overlbnap.)
         CGFloat dStart = [startThumb distanceFromPoint:point];
         CGFloat dEnd = [endThumb distanceFromPoint:point];
         
-        //NSLog(@"start dist: %f, end dist: %f", dStart, dEnd);
+        NSLog(@"start dist: %f, end dist: %f", dStart, dEnd);
         
         if (dStart < dEnd)
             return hitStartThumb;
@@ -1698,32 +1714,6 @@ static BOOL _recognizerTouchedView(UIGestureRecognizer *recognizer, UIView *view
     // But by default, use our superclass's behavior
     return [super hitTest:point withEvent:event];
 }
-
-//- (void)_thumbDrag:(UIPanGestureRecognizer *)gestureRecognizer;
-//{
-//    UIGestureRecognizerState st = gestureRecognizer.state;
-//    CGPoint delta = [gestureRecognizer translationInView:self];
-//    
-//    // UIPanGestureRecognizer seems to be kind of sloppy about its initial offset. Not sure if this'll be a problem in practice but it's noticeable in the simulator. Might need to do our own translation calculations.
-//    // NSLog(@"pan: %@, delta=%@", gestureRecognizer, NSStringFromCGPoint(delta));
-//    
-//    if (st == UIGestureRecognizerStateBegan) {
-//        /* The point below is the center of the caret rectangle we draw. We want to use that rather than the baseline point or the thumb point to allow the maximum finger slop before the text view selects a different line. */
-//        touchdownPoint = [self convertPoint:(CGPoint){0, - ascent/2} toView:self];
-//        [self thumbBegan:self];
-//    }
-//    
-//    /* UIPanGestureRecognizer will return a delta of { -NAN, -NAN } sometimes (if it would be outside the parent view's bounds maybe?). */
-//    if ((isfinite(delta.x) && isfinite(delta.y)) &&
-//        (st != UIGestureRecognizerStateBegan || !(delta.x == 0 && delta.y == 0))) {
-//        [self thumbMoved:self targetPosition:(CGPoint){ touchdownPoint.x + delta.x, touchdownPoint.y + delta.y }];
-//    }
-//    
-//    if (st == UIGestureRecognizerStateEnded || st == UIGestureRecognizerStateCancelled) {
-//        [self thumbEnded:self normally:(st == UIGestureRecognizerStateEnded? YES:NO)];
-//        touchdownPoint = (CGPoint){ NAN, NAN };
-//    }
-//}
 
 
 #pragma mark -
@@ -1758,12 +1748,13 @@ static BOOL _recognizerTouchedView(UIGestureRecognizer *recognizer, UIView *view
         actionRecognizers[recognizerIndex++] = inspectTap;
         [self addGestureRecognizer:inspectTap];
         
-//        UIPanGestureRecognizer *thumbDrag = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(_thumbDrag:)];
-//        thumbDrag.minimumNumberOfTouches = 1;
-//        thumbDrag.maximumNumberOfTouches = 1;
-//        actionRecognizers[recognizerIndex++] = thumbDrag;
-//        [self addGestureRecognizer:thumbDrag];
-//        [thumbDrag release];
+        UIPanGestureRecognizer *thumbDrag = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(_thumbDrag:)];
+        thumbDrag.minimumNumberOfTouches = 1;
+        thumbDrag.maximumNumberOfTouches = 1;
+				thumbDrag.delegate = (id<UIGestureRecognizerDelegate>	)self;
+        actionRecognizers[recognizerIndex++] = thumbDrag;
+        [self addGestureRecognizer:thumbDrag];
+        [thumbDrag release];
         
         assert(recognizerIndex == EF_NUM_ACTION_RECOGNIZERS);
     }
@@ -3824,7 +3815,7 @@ static BOOL includeRectsInBound(CGPoint p, CGFloat width, CGFloat trailingWS, CG
 - (void)_inspectTap:(UILongPressGestureRecognizer *)r;
 {    
     CGPoint touchPoint = [r locationInView:self];
-    OUEFTextPosition *pp = (OUEFTextPosition *)[self closestPositionToPoint:touchPoint];
+    OUEFTextPosition *touchedTextPosition = (OUEFTextPosition *)[self closestPositionToPoint:touchPoint];
     
     //NSLog(@"inspect with state %d at %@ with required taps %d, number of touches %d", r.state, pp, [r numberOfTapsRequired], [r numberOfTouches]);
     
@@ -3848,12 +3839,12 @@ static BOOL includeRectsInBound(CGPoint p, CGFloat width, CGFloat trailingWS, CG
         
         /* This by-word selection is only a rough approximation to the by-word selection that UITextView does */
         if ([r numberOfTapsRequired] > 1)
-            newSelection = [[self tokenizer] rangeEnclosingPosition:pp withGranularity:UITextGranularityWord inDirection:UITextStorageDirectionForward];
+            newSelection = [[self tokenizer] rangeEnclosingPosition:touchedTextPosition withGranularity:UITextGranularityWord inDirection:UITextStorageDirectionForward];
         
         if (newSelection) {
             [self setSelectedTextRange:newSelection];
         } else {
-            newSelection = [[OUEFTextRange alloc] initWithStart:pp end:pp];
+            newSelection = [[OUEFTextRange alloc] initWithStart:touchedTextPosition end:touchedTextPosition];
             [self setSelectedTextRange:newSelection];
             [newSelection release];
         }
@@ -3868,6 +3859,75 @@ static BOOL includeRectsInBound(CGPoint p, CGFloat width, CGFloat trailingWS, CG
 
     /* UITextView has two selection inspecting/altering modes: caret and range. If you have a caret, you get a round selection inspection that just alters the inspection point. If you have a range, then the end of the range that your tap is closest to is altered and a rectangular selection inspector is shown. The endpoint manipulation goes through OUEFTextThumb, so we're just dealing with caret adjustment here. */
     _loupe.mode = OUILoupeOverlayCircle;
+}
+
+- (BOOL) gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
+
+	if (![gestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]])
+	return NO;
+	
+	if (startThumb && CGRectContainsPoint(startThumb.bounds, [gestureRecognizer locationInView:startThumb]))
+	return YES;
+	
+	if (endThumb && CGRectContainsPoint(endThumb.bounds, [gestureRecognizer locationInView:endThumb]))
+	return YES;
+	
+	return NO;
+
+}
+
+- (void) _thumbDrag:(UIPanGestureRecognizer *)panGestureRecognizer {
+
+	static OUITextThumb *forwardingDestination = nil;
+
+	switch (panGestureRecognizer.state) {
+	
+		case UIGestureRecognizerStateBegan: {
+		
+			OUITextThumb *nearestThumb = nil;
+			
+			if (startThumb && CGRectContainsPoint(startThumb.bounds, [panGestureRecognizer locationInView:startThumb])) {
+				nearestThumb = startThumb;
+			} else if (endThumb && CGRectContainsPoint(endThumb.bounds, [panGestureRecognizer locationInView:endThumb])) {
+				nearestThumb = endThumb;
+			}
+			
+			//	TBD: Reversed drag, where the user drags the start thumb over the end thumb.  Should the selection be carried over?
+			//	OUEFTextPosition *tappedPosition = [self tappedPositionForPoint:[panGestureRecognizer locationInView:self]];			
+			//	if (CGRectIntersectsRect(startThumb.frame, endThumb.frame)) {
+			//		if ([self.selectedTextRange.start compare:tappedPosition] == NSOrderedDescending) {
+			//			NSLog(@"tapped position is before start");
+			//		}
+			//	}
+			
+			forwardingDestination = [nearestThumb isKindOfClass:[OUITextThumb class]] ? nearestThumb : nil;
+			[forwardingDestination performSelector:@selector(_dragged:) withObject:panGestureRecognizer];
+		
+			break;
+		
+		}
+		
+		case UIGestureRecognizerStateChanged: {
+		
+			[forwardingDestination performSelector:@selector(_dragged:) withObject:panGestureRecognizer];
+			break;
+			
+		}
+		
+		case UIGestureRecognizerStateCancelled:
+		case UIGestureRecognizerStatePossible:		
+		case UIGestureRecognizerStateFailed:
+		case UIGestureRecognizerStateEnded: {
+		
+			[forwardingDestination performSelector:@selector(_dragged:) withObject:panGestureRecognizer];
+			forwardingDestination = nil;
+			
+			break;
+			
+		}
+		
+	}
+
 }
 
 /* Used by the addRectsToPath() callback */
