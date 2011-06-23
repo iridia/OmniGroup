@@ -2221,6 +2221,12 @@ enum {
 
 }
 
+- (NSRange) rangeForDeletingBackwardWithRange:(NSRange)proposedRange {
+
+	return proposedRange;
+
+}
+
 - (void)deleteBackward;
 {
     OBPRECONDITION(_content);
@@ -2241,6 +2247,8 @@ enum {
         OBASSERT_NOT_REACHED("Bad deletion range in -deleteBackward");
         return;
     }
+		
+		deleteRange = [self rangeForDeletingBackwardWithRange:deleteRange];
     
     if (deleteRange.length == 0 && flags.delegateRespondsToShouldDeleteBackwardsFromIndex && ![delegate textView:self shouldDeleteBackwardsFromIndex:deleteRange.location])
         return; // Our delegate has handled (or refused) this delete action

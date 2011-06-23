@@ -189,6 +189,7 @@
 
 //	Override to inject custom content thru UIKeyInput events
 - (NSAttributedString *) insertedAttributedStringForText:(NSString *)text;
+- (NSRange) rangeForDeletingBackwardWithRange:(NSRange)proposedRange;
 
 @end
 
