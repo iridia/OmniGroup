@@ -176,7 +176,8 @@
 - (NSArray *)inspectableTextSpans;    // returns set of OUEFTextSpans 
 - (void)inspectSelectedTextFromBarButtonItem:(UIBarButtonItem *)barButtonItem;
 
-- (NSRange)characterRangeForTextRange:(UITextRange *)textRange;
+- (NSRange) characterRangeForTextRange:(UITextRange *)textRange;
+- (UITextRange *) textRangeForCharacterRange:(NSRange)characterRange; // mostly a convenience because leaking an ivar (generation) is not so good
 
 // Optional OUIInspectorDelegate methods that we implement (so subclasses can call super)
 - (NSArray *)inspector:(OUIInspector *)inspector makeAvailableSlicesForStackedSlicesPane:(OUIStackedSlicesInspectorPane *)pane;
