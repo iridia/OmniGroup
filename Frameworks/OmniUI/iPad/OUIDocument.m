@@ -103,7 +103,7 @@ RCS_ID("$Id$");
         return nil;
     }
 
-    _viewController = [[self makeViewController] retain];
+    _viewController = (UIViewController <OUIDocumentViewController> *)[[self makeViewController] retain];
     OBASSERT([_viewController conformsToProtocol:@protocol(OUIDocumentViewController)]);
     OBASSERT(_viewController.document == nil); // we'll set it; -makeViewController shouldn't bother
     _viewController.document = self;

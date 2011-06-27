@@ -18,7 +18,7 @@ extern NSString * const OUICertificateTrustUpdated;
 @private 
     NSURL *_address;
     NSString *_username;
-    NSString *_newKeychainPassword;
+    NSString *_updatedKeychainPassword;
     
     OFSFileManager *_fileManager;
     NSURLAuthenticationChallenge *_authenticationChallenge;
@@ -32,7 +32,7 @@ extern NSString * const OUICertificateTrustUpdated;
 
 @property (readwrite, retain) NSURL *address;
 @property (readwrite, retain) NSString *username;
-@property (readwrite, retain) NSString *newKeychainPassword;
+@property (readwrite, retain) NSString *updatedKeychainPassword;
 @property (readonly, retain) OFSFileManager *fileManager;
 @property (readonly, retain) NSURLAuthenticationChallenge *authenticationChallenge;
 

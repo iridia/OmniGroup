@@ -115,7 +115,7 @@ static NSString * const SelectAction = @"select";
 - (OUIBarButtonItem *)infoBarButtonItem;
 {
     if (!_infoBarButtonItem)
-        _infoBarButtonItem = [[OUIInspector inspectorBarButtonItemWithTarget:self action:@selector(_showInspector:)] retain];
+        _infoBarButtonItem = (OUIBarButtonItem *)[[OUIInspector inspectorBarButtonItemWithTarget:self action:@selector(_showInspector:)] retain];
     return _infoBarButtonItem;
 }
 

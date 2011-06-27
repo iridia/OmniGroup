@@ -41,7 +41,7 @@ RCS_ID("$Id$");
 
 - (OFFileWrapper *)fileWrapperRepresentation;
 {
-    OFFileWrapper *wrapper = [[[OFFileWrapper alloc] initSymbolicLinkWithDestinationURL:[NSURL fileURLWithPath:_destination]] autorelease];
+    OFFileWrapper *wrapper = (OFFileWrapper *)[[(NSFileWrapper *)[OFFileWrapper alloc] initSymbolicLinkWithDestinationURL:[NSURL fileURLWithPath:_destination]] autorelease];
     [wrapper setFilename:[self name]];
     [wrapper setPreferredFilename:[self name]];
     return wrapper;
