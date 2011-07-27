@@ -1749,7 +1749,6 @@ static BOOL _recognizerTouchedView(UIGestureRecognizer *recognizer, UIView *view
 				thumbDrag.delegate = (id<UIGestureRecognizerDelegate>	)self;
         actionRecognizers[recognizerIndex++] = thumbDrag;
         [self addGestureRecognizer:thumbDrag];
-        [thumbDrag release];
         
         assert(recognizerIndex == EF_NUM_ACTION_RECOGNIZERS);
     }
