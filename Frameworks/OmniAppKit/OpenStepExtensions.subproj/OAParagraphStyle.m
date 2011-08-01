@@ -276,7 +276,7 @@ RCS_ID("$Id$");
 
 - (CFTypeRef)copyCTParagraphStyle;
 {
-#define OAParagraphStyleNumSettings 13
+#define OAParagraphStyleNumSettings 14
     CTParagraphStyleSetting settings[OAParagraphStyleNumSettings];
     
     // Note that these default values are the defaults used by CTParagraphStyle, not the ones used by our own style system
