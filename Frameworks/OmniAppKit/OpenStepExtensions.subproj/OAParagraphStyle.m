@@ -293,8 +293,7 @@ RCS_ID("$Id$");
     SETTING(kCTParagraphStyleSpecifierMaximumLineHeight, CGFloat, _scalar.maximumLineHeight, 0.0);
     SETTING(kCTParagraphStyleSpecifierMinimumLineHeight, CGFloat, _scalar.minimumLineHeight, 0.0);
     SETTING(kCTParagraphStyleSpecifierDefaultTabInterval, CGFloat, _scalar.defaultTabInterval, 0.0);
-
-    /* TODO: Tab stops ( kCTParagraphStyleSpecifierTabStops ) */
+    SETTING(kCTParagraphStyleSpecifierTabStops, CFArrayRef, (void *)_tabStops, nil);
     
     CTTextAlignment align;
     switch( _scalar.alignment ) {
