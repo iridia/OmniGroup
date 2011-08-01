@@ -1288,8 +1288,8 @@ static BOOL _rangeIsInsertionPoint(OUIEditableFrame *self, UITextRange *r)
         NSMutableDictionary *attributes = [self.typingAttributes mutableCopy];
         if (value)
             [attributes setObject:value forKey:attr];
-        else
-            [attributes removeObjectForKey:value];
+        else if (attr)
+            [attributes removeObjectForKey:attr];
         self.typingAttributes = attributes;
         [attributes release];
         return;
