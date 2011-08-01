@@ -792,6 +792,12 @@ static void afterContentReplaced(OUIEditableFrame *self)
 static BOOL _rangeIsInsertionPoint(OUIEditableFrame *self, UITextRange *r)
 {
     OBPRECONDITION([r isKindOfClass:[OUEFTextRange class]]);
+		
+		if (![r isKindOfClass:[OUEFTextRange class]]) {
+		
+			NSLog(@"NO");
+			
+		}
     
     if (r == self->selection)
         return [r isEmpty]; //YES;
@@ -1560,6 +1566,8 @@ static BOOL _recognizerTouchedView(UIGestureRecognizer *recognizer, UIView *view
         selectionRectangle = CGRectIntegral(selectionRectangle);
         
         [_selectionContextMenu setTargetRect:selectionRectangle inView:self];
+				
+				NSLog(@"Menu target rect %@ in view %@", NSStringFromCGRect(selectionRectangle), self);
         
         if (!alreadyVisible) {
             DEBUG_TEXT(@"Showing context menu");
@@ -2079,6 +2087,44 @@ static BOOL _recognizerTouchedView(UIGestureRecognizer *recognizer, UIView *view
 
     afterMutate(self, _cmd, options);
     afterContentReplaced(self);
+}
+
+
+
+
+
+- (void) mutateContentTextWithBlock:(void(^)(NSMutableAttributedString *mutatedContent))aBlock {
+
+	[self mutateContentTextNotifyingInputDelegate:YES notifyingTextStorage:YES mutatingAttributesOnly:NO withBlock:aBlock];
+
+}
+
+- (void) mutateContentTextNotifyingInputDelegate:(BOOL)notifyingInputDelegate notifyingTextStorage:(BOOL)notifyTextStorage mutatingAttributesOnly:(BOOL)onlyMutateAttributes withBlock:(void(^)(NSMutableAttributedString *mutatedContent))aBlock {
+
+	if (!aBlock)
+		return;
+
+	[self textStorage]; // Make sure our text storage has been created.
+
+	OUIEditableFrameMutationOptions options = 0;
+	
+	if (notifyingInputDelegate)
+		options |= OUIEditableFrameMutationOptionNotifyInputDelegate;
+		
+	if (!notifyTextStorage)
+		options |= OUIEditableFrameMutationOptionNotifyNotEditingTextStorage;
+	
+	if (onlyMutateAttributes)
+		options |= OUIEditableFrameMutationOptionAttributesOnly;
+	
+	if (!beforeMutate(self, _cmd, options))
+			return;
+			
+	aBlock(_content);
+
+	afterMutate(self, _cmd, options);
+	afterContentReplaced(self);
+
 }
 
 #pragma mark -

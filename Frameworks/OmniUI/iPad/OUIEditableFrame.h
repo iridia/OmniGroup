@@ -192,5 +192,11 @@
 - (NSAttributedString *) insertedAttributedStringForText:(NSString *)text;
 - (NSRange) rangeForDeletingBackwardWithRange:(NSRange)proposedRange;
 
+
+//	Text Storage content mutation methods
+
+- (void) mutateContentTextWithBlock:(void(^)(NSMutableAttributedString *mutatedContent))aBlock;
+- (void) mutateContentTextNotifyingInputDelegate:(BOOL)notifyingInputDelegate notifyingTextStorage:(BOOL)notifyTextStorage mutatingAttributesOnly:(BOOL)onlyMutateAttributes withBlock:(void(^)(NSMutableAttributedString *mutatedContent))aBlock;
+
 @end
 
