@@ -1986,7 +1986,8 @@ static BOOL _recognizerTouchedView(UIGestureRecognizer *recognizer, UIView *view
         
         while (cursor.location < contentLength) {
             NSDictionary *run = [_content attributesAtIndex:cursor.location effectiveRange:&cursor];
-            
+            [[run retain] autorelease];
+						
             if (defaultFont && ![run objectForKey:(id)kCTFontAttributeName])
                 [_content addAttribute:(id)kCTFontAttributeName value:(id)defaultFont range:cursor];
             if (textCGColor && ![run objectForKey:(id)kCTForegroundColorAttributeName])
