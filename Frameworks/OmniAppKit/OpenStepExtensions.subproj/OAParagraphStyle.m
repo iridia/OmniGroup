@@ -14,6 +14,7 @@
 #import <OmniFoundation/NSNumber-OFExtensions-CGTypes.h>
 #import <Foundation/NSArray.h>
 #import <CoreText/CTParagraphStyle.h>
+#import <CoreText/CTTextTab.h>
 
 RCS_ID("$Id$");
 
@@ -98,6 +99,19 @@ RCS_ID("$Id$");
             OBASSERT_NOT_REACHED("Unknown alignemnt");
             return OALeftTextAlignment;
     }
+}
+
+- (CFTypeRef)copyCTTextTab;
+{
+    CTTextAlignment mapping[] = {
+			[OALeftTextAlignment] = kCTLeftTextAlignment,
+			[OARightTextAlignment] = kCTRightTextAlignment,
+			[OACenterTextAlignment] = kCTCenterTextAlignment,
+			[OAJustifiedTextAlignment] = kCTJustifiedTextAlignment,
+			[OANaturalTextAlignment] = kCTNaturalTextAlignment
+    };
+    CTTextTabRef returnedTextTab = CTTextTabCreate(mapping[_alignment], _location, NULL);
+		return returnedTextTab;
 }
 
 @end
@@ -276,7 +290,7 @@ RCS_ID("$Id$");
 
 - (CFTypeRef)copyCTParagraphStyle;
 {
-#define OAParagraphStyleNumSettings 14
+#define OAParagraphStyleNumSettings 13
     CTParagraphStyleSetting settings[OAParagraphStyleNumSettings];
     
     // Note that these default values are the defaults used by CTParagraphStyle, not the ones used by our own style system
@@ -293,7 +307,18 @@ RCS_ID("$Id$");
     SETTING(kCTParagraphStyleSpecifierMaximumLineHeight, CGFloat, _scalar.maximumLineHeight, 0.0);
     SETTING(kCTParagraphStyleSpecifierMinimumLineHeight, CGFloat, _scalar.minimumLineHeight, 0.0);
     SETTING(kCTParagraphStyleSpecifierDefaultTabInterval, CGFloat, _scalar.defaultTabInterval, 0.0);
-    SETTING(kCTParagraphStyleSpecifierTabStops, CFArrayRef, (void *)_tabStops, nil);
+		
+		if ([_tabStops count]) {
+			NSMutableArray *actualTabStops = [NSMutableArray arrayWithCapacity:[_tabStops count]];
+			for (OATextTab *aTextTab in _tabStops) {
+				CTTextTabRef convertedTextTab = [aTextTab copyCTTextTab];
+				if (convertedTextTab) {
+					[actualTabStops addObject:(id)convertedTextTab];
+					CFRelease(convertedTextTab);
+				}
+			}
+			SETTING(kCTParagraphStyleSpecifierTabStops, CFArrayRef, (void *)actualTabStops, nil);
+		}
     
     CTTextAlignment align;
     switch( _scalar.alignment ) {
@@ -319,7 +344,7 @@ RCS_ID("$Id$");
 
     OBASSERT(settingIndex <= OAParagraphStyleNumSettings);
     
-    return CTParagraphStyleCreate(settings, settingIndex);
+		return CTParagraphStyleCreate(settings, settingIndex);
 }
 
 #pragma mark -

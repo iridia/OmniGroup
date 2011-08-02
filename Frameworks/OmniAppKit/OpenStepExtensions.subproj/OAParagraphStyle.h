@@ -53,6 +53,7 @@ typedef NSUInteger OATextTabType;
 - (id)initWithType:(OATextTabType)type location:(CGFloat)location;
 - (CGFloat)location;
 - (OATextTabType)tabStopType;
+- (CFTypeRef)copyCTTextTab;
 @end
 
 @interface OAParagraphStyle : OFObject <NSCopying, NSMutableCopying>
