@@ -152,7 +152,12 @@ RCS_ID("$Id$");
 - (void)setParagraphStyle:(OAParagraphStyle *)paragraphDescriptor fromInspectorSlice:(OUIInspectorSlice *)inspector;
 {
     OUEFTextRange *beginningParagraph = (OUEFTextRange *)[[frame tokenizer] rangeEnclosingPosition:start withGranularity:UITextGranularityParagraph inDirection:UITextStorageDirectionForward];
-    
+		
+		//	If the beginning of the paragraph can not be found, for instance when the document only holds one paragraph, start the range from the very beginning
+		
+		if (!beginningParagraph)
+			beginningParagraph = [frame rangeOfLineContainingPosition:[[[OUEFTextPosition alloc] initWithIndex:0] autorelease]];
+		
     OUEFTextRange *fullParagraph;
     if (![beginningParagraph includesPosition:end]) {
         OUEFTextRange *endingParagraph = (OUEFTextRange *)[[frame tokenizer] rangeEnclosingPosition:end withGranularity:UITextGranularityParagraph inDirection:UITextStorageDirectionBackward];
