@@ -151,7 +151,7 @@ RCS_ID("$Id$");
 
 - (void)setParagraphStyle:(OAParagraphStyle *)paragraphDescriptor fromInspectorSlice:(OUIInspectorSlice *)inspector;
 {
-    OUEFTextRange *beginningParagraph = (OUEFTextRange *)[[frame tokenizer] rangeEnclosingPosition:start withGranularity:UITextGranularityParagraph inDirection:UITextStorageDirectionForward];
+    OUEFTextRange *beginningParagraph = (OUEFTextRange *)[[frame tokenizer] rangeEnclosingPosition:start withGranularity:UITextGranularityParagraph inDirection:UITextStorageDirectionBackward];
 		
 		//	If the beginning of the paragraph can not be found, for instance when the document only holds one paragraph, start the range from the very beginning
 		
@@ -160,7 +160,7 @@ RCS_ID("$Id$");
 		
     OUEFTextRange *fullParagraph;
     if (![beginningParagraph includesPosition:end]) {
-        OUEFTextRange *endingParagraph = (OUEFTextRange *)[[frame tokenizer] rangeEnclosingPosition:end withGranularity:UITextGranularityParagraph inDirection:UITextStorageDirectionBackward];
+        OUEFTextRange *endingParagraph = (OUEFTextRange *)[[frame tokenizer] rangeEnclosingPosition:end withGranularity:UITextGranularityParagraph inDirection:UITextStorageDirectionForward];
         fullParagraph = [beginningParagraph rangeIncludingPosition:(OUEFTextPosition *)endingParagraph.end];
     } else
         fullParagraph = beginningParagraph;
