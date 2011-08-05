@@ -4608,6 +4608,29 @@ BOOL OUITextLayoutDrawRunBackgrounds(CGContextRef ctx, CTFrameRef drawnFrame, NS
 		return [[[OUEFTextRange alloc] initWithRange:characterRange generation:generation] autorelease];
 }
 
+- (UITextRange *) textRangeForSelectedParagraphs {
+
+	OUEFTextRange *selectedRange = (OUEFTextRange *)self.selectedTextRange;
+
+	OUEFTextRange *beginningParagraph = (OUEFTextRange *)[[self tokenizer] rangeEnclosingPosition:self.selectedTextRange.start withGranularity:UITextGranularityParagraph inDirection:UITextStorageDirectionBackward];
+		
+	//	If the beginning of the paragraph can not be found, for instance when the document only holds one paragraph, start the range from the very beginning
+	
+	if (!beginningParagraph)
+		beginningParagraph = [self rangeOfLineContainingPosition:[[[OUEFTextPosition alloc] initWithIndex:0] autorelease]];
+	
+	OUEFTextRange *fullParagraph = nil;
+	if (![beginningParagraph includesPosition:((OUEFTextPosition *)selectedRange.end)]) {
+		OUEFTextRange *endingParagraph = (OUEFTextRange *)[[self tokenizer] rangeEnclosingPosition:((OUEFTextPosition *)selectedRange.end) withGranularity:UITextGranularityParagraph inDirection:UITextStorageDirectionForward];
+		fullParagraph = [beginningParagraph rangeIncludingPosition:((OUEFTextPosition *)endingParagraph.end)];
+	} else {
+		fullParagraph = beginningParagraph;
+	}
+	
+	return fullParagraph;
+
+}
+
 
 #pragma mark OUIInspectorDelegate
 

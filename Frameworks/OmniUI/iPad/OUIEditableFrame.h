@@ -192,6 +192,7 @@
 - (NSAttributedString *) insertedAttributedStringForText:(NSString *)text;
 - (NSRange) rangeForDeletingBackwardWithRange:(NSRange)proposedRange;
 
+- (UITextRange *) textRangeForSelectedParagraphs;
 
 //	Text Storage content mutation methods
 
