@@ -4613,7 +4613,7 @@ BOOL OUITextLayoutDrawRunBackgrounds(CGContextRef ctx, CTFrameRef drawnFrame, NS
 	OUEFTextRange *selectedRange = (OUEFTextRange *)self.selectedTextRange;
 
 	OUEFTextRange *beginningParagraph = (OUEFTextRange *)[[self tokenizer] rangeEnclosingPosition:self.selectedTextRange.start withGranularity:UITextGranularityParagraph inDirection:UITextStorageDirectionBackward];
-		
+	
 	//	If the beginning of the paragraph can not be found, for instance when the document only holds one paragraph, start the range from the very beginning
 	
 	if (!beginningParagraph)
@@ -4622,10 +4622,17 @@ BOOL OUITextLayoutDrawRunBackgrounds(CGContextRef ctx, CTFrameRef drawnFrame, NS
 	OUEFTextRange *fullParagraph = nil;
 	if (![beginningParagraph includesPosition:((OUEFTextPosition *)selectedRange.end)]) {
 		OUEFTextRange *endingParagraph = (OUEFTextRange *)[[self tokenizer] rangeEnclosingPosition:((OUEFTextPosition *)selectedRange.end) withGranularity:UITextGranularityParagraph inDirection:UITextStorageDirectionForward];
-		fullParagraph = [beginningParagraph rangeIncludingPosition:((OUEFTextPosition *)endingParagraph.end)];
-	} else {
-		fullParagraph = beginningParagraph;
+		
+		if (!endingParagraph)
+			endingParagraph = (OUEFTextRange *)[[self tokenizer] rangeEnclosingPosition:((OUEFTextPosition *)selectedRange.end) withGranularity:UITextGranularityParagraph inDirection:UITextStorageDirectionBackward];
+		
+		if (endingParagraph)
+			fullParagraph = [beginningParagraph rangeIncludingPosition:((OUEFTextPosition *)endingParagraph.end)];
+		
 	}
+	
+	if (!fullParagraph)
+		fullParagraph = beginningParagraph;
 	
 	return fullParagraph;
 
