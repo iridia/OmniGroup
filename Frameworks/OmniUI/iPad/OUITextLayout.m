@@ -443,8 +443,8 @@ void OUITextLayoutFixupParagraphStyles(NSMutableAttributedString *content)
              */
             
             NSRange paragraphRange = (NSRange){paragraphStart, paragraphEnd-paragraphStart};
-            NSRange eolStyleRange;
-            id eolStyle, applyStyle;
+            NSRange eolStyleRange = (NSRange){ NSNotFound, 0 };
+            volatile id eolStyle = nil, applyStyle = nil;
             if (paragraphContentsEnd > paragraphEnd) {
                 eolStyle = [content attribute:paragraphStyle atIndex:paragraphContentsEnd longestEffectiveRange:&eolStyleRange inRange:paragraphRange];
             } else {
@@ -456,11 +456,16 @@ void OUITextLayoutFixupParagraphStyles(NSMutableAttributedString *content)
                 applyStyle = eolStyle;
             } else {
                 /* Since we got nil, and asked for the longest effective range, we know the character right before the returned effective range must have a non-nil style */
-                applyStyle = [content attribute:paragraphStyle atIndex:eolStyleRange.location - 1 effectiveRange:NULL];
+								if (eolStyleRange.location != NSNotFound)
+								if ([content length] >= (eolStyleRange.location + eolStyleRange.length)) {
+									applyStyle = [content attribute:paragraphStyle atIndex:eolStyleRange.location - 1 effectiveRange:NULL];
+								}
             }
             
             /* Apply this to the whole paragraph */
-            [content addAttribute:paragraphStyle value:applyStyle range:paragraphRange];
+						if (applyStyle)
+							[content addAttribute:paragraphStyle value:applyStyle range:paragraphRange];
+						
             cursor = paragraphEnd;
         } else {
             /* No fixup needed: the style boundary is also a paragraph boundary. */
