@@ -113,7 +113,12 @@ NSString * const OATextStorageDidProcessEditingNotification = @"OATextStorageDid
 
 - (NSDictionary *)attributesAtIndex:(NSUInteger)location effectiveRange:(NSRangePointer)range;
 {
-    return [_contents attributesAtIndex:location effectiveRange:range];
+	@try {
+		return [_contents attributesAtIndex:location effectiveRange:range];
+	}
+	@catch (NSException *exception) {
+		return nil;
+	}
 }
 
 - (void)replaceCharactersInRange:(NSRange)range withString:(NSString *)str;
