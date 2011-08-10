@@ -4620,12 +4620,13 @@ BOOL OUITextLayoutDrawRunBackgrounds(CGContextRef ctx, CTFrameRef drawnFrame, NS
 
 	OUEFTextRange *selectedRange = (OUEFTextRange *)self.selectedTextRange;
 
-	OUEFTextRange *beginningParagraph = (OUEFTextRange *)[[self tokenizer] rangeEnclosingPosition:self.selectedTextRange.start withGranularity:UITextGranularityParagraph inDirection:UITextStorageDirectionBackward];
+	OUEFTextRange *beginningParagraph = (OUEFTextRange *)[[self tokenizer] rangeEnclosingPosition:self.selectedTextRange.start withGranularity:UITextGranularityParagraph inDirection:UITextStorageDirectionForward];
 	
 	//	If the beginning of the paragraph can not be found, for instance when the document only holds one paragraph, start the range from the very beginning
 	
-	if (!beginningParagraph)
-		beginningParagraph = [self rangeOfLineContainingPosition:[[[OUEFTextPosition alloc] initWithIndex:[(OUEFTextPosition *)selectedRange.end index]] autorelease]];
+	if (!beginningParagraph) {
+		beginningParagraph = [self rangeOfLineContainingPosition:[[[OUEFTextPosition alloc] initWithIndex:[(OUEFTextPosition *)selectedRange.start index]] autorelease]];
+	}
 	
 	OUEFTextRange *fullParagraph = nil;
 	if (![beginningParagraph includesPosition:((OUEFTextPosition *)selectedRange.end)]) {
