@@ -2246,24 +2246,32 @@ enum {
 #endif
     
     [self unmarkText];
-
-    OUIEditableFrameMutationOptions options = 0;
-    if (!beforeMutate(self, _cmd, options))
-        return;
-    
-    NSAttributedString *insertThis = [[self insertedAttributedStringForText:text] retain];
-    [_content replaceCharactersInRange:replaceRange withAttributedString:insertThis];
-    [insertThis release];
-    afterMutate(self, _cmd, options);
-    [self _setSelectionToIndex: ( replaceRange.location + [insertThis length] )];
-    notifyAfterMutate(self, _cmd, options);
-    
+		
+		NSAttributedString *insertedString = [self insertedAttributedStringForText:text];
+		[self insertAttributedString:insertedString replacingRange:replaceRange withCaretIndex:(replaceRange.location + [insertedString length])];
+		   
     [self setNeedsDisplay];
 }
 
 - (NSAttributedString *) insertedAttributedStringForText:(NSString *)text {
 
 	return [[[NSAttributedString alloc] initWithString:text attributes:[self typingAttributes]] autorelease];
+
+}
+
+- (void) insertAttributedString:(NSAttributedString *)insertedString replacingRange:(NSRange)replacedRange withCaretIndex:(NSUInteger)finalCaretIndex {
+
+	OUIEditableFrameMutationOptions options = 0;
+	if (!beforeMutate(self, _cmd, options))
+			return;
+	
+	[insertedString retain];
+	[_content replaceCharactersInRange:replacedRange withAttributedString:insertedString];
+	[insertedString release];
+	
+	afterMutate(self, _cmd, options);
+	[self _setSelectionToIndex:finalCaretIndex];
+	notifyAfterMutate(self, _cmd, options);
 
 }
 
@@ -2279,7 +2287,7 @@ enum {
     
     [self _setSolidCaret:0];
 
-    NSRange deleteRange;
+    volatile NSRange deleteRange;
     if (markedRange.location != NSNotFound)
         deleteRange = markedRange;
     else if (selection)
@@ -4617,7 +4625,7 @@ BOOL OUITextLayoutDrawRunBackgrounds(CGContextRef ctx, CTFrameRef drawnFrame, NS
 	//	If the beginning of the paragraph can not be found, for instance when the document only holds one paragraph, start the range from the very beginning
 	
 	if (!beginningParagraph)
-		beginningParagraph = [self rangeOfLineContainingPosition:[[[OUEFTextPosition alloc] initWithIndex:0] autorelease]];
+		beginningParagraph = [self rangeOfLineContainingPosition:[[[OUEFTextPosition alloc] initWithIndex:[(OUEFTextPosition *)selectedRange.end index]] autorelease]];
 	
 	OUEFTextRange *fullParagraph = nil;
 	if (![beginningParagraph includesPosition:((OUEFTextPosition *)selectedRange.end)]) {

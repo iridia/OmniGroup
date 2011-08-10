@@ -191,6 +191,7 @@
 //	Override to inject custom content thru UIKeyInput events
 - (NSAttributedString *) insertedAttributedStringForText:(NSString *)text;
 - (NSRange) rangeForDeletingBackwardWithRange:(NSRange)proposedRange;
+- (void) insertAttributedString:(NSAttributedString *)insertedString replacingRange:(NSRange)replacedRange withCaretIndex:(NSUInteger)finalCaretIndex;
 
 - (UITextRange *) textRangeForSelectedParagraphs;
 
