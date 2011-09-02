@@ -4629,7 +4629,7 @@ BOOL OUITextLayoutDrawRunBackgrounds(CGContextRef ctx, CTFrameRef drawnFrame, NS
 	}
 	
 	OUEFTextRange *fullParagraph = nil;
-	if (![beginningParagraph includesPosition:((OUEFTextPosition *)selectedRange.end)]) {
+	if (!selectedRange.end || ![beginningParagraph includesPosition:((OUEFTextPosition *)selectedRange.end)]) {
 		OUEFTextRange *endingParagraph = (OUEFTextRange *)[[self tokenizer] rangeEnclosingPosition:((OUEFTextPosition *)selectedRange.end) withGranularity:UITextGranularityParagraph inDirection:UITextStorageDirectionForward];
 		
 		if (!endingParagraph)
