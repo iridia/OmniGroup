@@ -3112,14 +3112,15 @@ static NSUInteger moveVisuallyWithinLine(CTLineRef line, CFStringRef base, NSUIn
 {
     /* TODO: Implement this */
     btrace();
-    abort();    
+		return UITextWritingDirectionLeftToRight;
+//    abort();    
 }
 
 - (void)setBaseWritingDirection:(UITextWritingDirection)writingDirection forRange:(UITextRange *)range;
 {
     /* TODO: Implement this */
     btrace();
-    abort();
+//    abort();
 }    
 
 /* Geometry used to provide, for example, a correction rect. */
