@@ -337,6 +337,10 @@ RCS_ID("$Id$");
 
 - (BOOL)_saveToURL:(NSURL *)url isAutosave:(BOOL)isAutosave error:(NSError **)outError;
 {
+
+		[[_url retain] autorelease];
+		[[url retain] autorelease];
+
     OBPRECONDITION(!_url || [_url isEqual:url]); // New documents can gain a URL, but we don't intend to have "save as".
     
     if (!url) {
@@ -367,10 +371,7 @@ RCS_ID("$Id$");
         // Remember that we've done an autosave, thus blowing away our last preview. When we close the document, this forces a save with the preview.
         _hasDoneAutosave = YES;
     }
-		
-		[[_url retain] autorelease];
-		[[url retain] autorelease];
-    
+		    
     if (OFNOTEQUAL(_url, url)) {
         [_url release]; // might be set if we loaded from a template
         _url = [url copy];
@@ -385,6 +386,9 @@ RCS_ID("$Id$");
     [_undoIndicator hide];
     
     NSError *error = nil;
+		
+		[[_url retain] autorelease];
+		
     if (![self _saveToURL:_url isAutosave:YES error:&error])
         OUI_PRESENT_ERROR(error);
 }
