@@ -235,7 +235,9 @@ RCS_ID("$Id$");
     [_saveTimer invalidate];
     [_saveTimer release];
     _saveTimer = nil;
-    
+		
+		[[_url retain] autorelease];
+		
     if (![self _saveToURL:_url isAutosave:NO error:outError])
         return NO;
     
@@ -365,6 +367,9 @@ RCS_ID("$Id$");
         // Remember that we've done an autosave, thus blowing away our last preview. When we close the document, this forces a save with the preview.
         _hasDoneAutosave = YES;
     }
+		
+		[[_url retain] autorelease];
+		[[url retain] autorelease];
     
     if (OFNOTEQUAL(_url, url)) {
         [_url release]; // might be set if we loaded from a template
