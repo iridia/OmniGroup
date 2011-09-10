@@ -3238,10 +3238,30 @@ static BOOL firstRect(CGPoint p, CGFloat width, CGFloat trailingWS, CGFloat asce
     if (ctFont) {
         /* As far as I can tell, the name that UIFont wants is the PostScript name of the font. (It's undocumented, of course. RADAR 7881781 / 7241008) */
         CFStringRef fontName = CTFontCopyPostScriptName(ctFont);
-        /* There's no way to tell the text input system that we're displaying a zoomed UI, but we can at least scale up the text in the correction rect. */
-        UIFont *uif = [UIFont fontWithName:(id)fontName size:CTFontGetSize(ctFont) * MAX(1.0, [self scale])];
+				CGFloat fontSize = CTFontGetSize(ctFont) * MAX(1.0, [self scale]);
+        
+				/* There's no way to tell the text input system that we're displaying a zoomed UI, but we can at least scale up the text in the correction rect. */
+        UIFont *uif = [UIFont fontWithName:(id)fontName size:fontSize];
         CFRelease(fontName);
-        [uiStyles setObject:uif forKey:UITextInputTextFontKey];
+				
+				if (!uif) {
+					/* If that fails, fall back to the family name. */
+					fontName = CTFontCopyFamilyName(ctFont);
+					uif = [UIFont fontWithName:(id)fontName size:fontSize];
+					CFRelease(fontName);
+				}
+				
+				if (!uif) {
+					/* If that still fails, use the default font. */
+					fontName = CTFontCopyPostScriptName(self.defaultCTFont);
+					uif = [UIFont fontWithName:(id)fontName size:fontSize];
+					CFRelease(fontName);
+				}
+				
+				if (uif)
+					[uiStyles setObject:uif forKey:UITextInputTextFontKey];
+				else
+					NSLog(@"%s: Font name %@ from %@ not recognized by UIFont", __PRETTY_FUNCTION__, fontName, ctFont);					
     }
     
     CGColorRef cgColor = (CGColorRef)[ctStyles objectForKey:(id)kCTForegroundColorAttributeName];
