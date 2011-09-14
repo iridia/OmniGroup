@@ -278,7 +278,7 @@ static const struct {
     BOOL needTerminatingSpace = NO;
     int leftIndent = (int)(20.0 * headIndent);
     int firstLineIndent = ((int)(20.0 * firstLineHeadIndent)) - leftIndent;
-    int rightIndent = 8640 - (int)(20.0 * tailIndent);
+    int rightIndent = (int)(20.0 * tailIndent);	//	Was 8640 - (int)(20.0 * tailIndent)
     if (alignment != _state.alignment) {
         switch (alignment) {
             default:
