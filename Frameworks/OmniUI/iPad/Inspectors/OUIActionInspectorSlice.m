@@ -8,6 +8,7 @@
 #import <OmniUI/OUIActionInspectorSlice.h>
 
 #import <OmniUI/OUIInspectorTextWell.h>
+#import "OUIParameters.h"
 
 RCS_ID("$Id$");
 
@@ -18,13 +19,24 @@ RCS_ID("$Id$");
     return [OUIInspectorTextWell class];
 }
 
++ (OUIInspectorTextWellStyle)textWellStyle;
+{
+    return OUIInspectorTextWellStyleDefault;
+}
+
++ (UIControlEvents)textWellControlEvents;
+{
+    // Return UIControlEventValueChanged for an editable field.
+    return UIControlEventTouchUpInside;
+}
+
 // There is no target since the receiver will almost always be the target and we don't want to create a retain cycle.
 - initWithTitle:(NSString *)title action:(SEL)action;
 {
     OBPRECONDITION(title);
     OBPRECONDITION(action);
     
-    if (!(self = [super init]))
+    if (!(self = [super initWithNibName:nil bundle:nil]))
         return nil;
     
     _action = action;
@@ -33,6 +45,8 @@ RCS_ID("$Id$");
     
     return self;
 }
+
+@synthesize shouldEditOnLoad = _shouldEditOnLoad;
 
 - (OUIInspectorTextWell *)textWell;
 {
@@ -53,20 +67,23 @@ RCS_ID("$Id$");
 
 - (void)loadView;
 {
-    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 100, 45)]; // Width doesn't matter; we'll get width-resized as we get put in the stack.
-    
-    UIEdgeInsets textWellInsets = UIEdgeInsetsMake(0/*top*/, 9/*left*/, 8/*bottom*/, 9/*right*/);
-    CGRect textWellFrame = UIEdgeInsetsInsetRect(view.bounds, textWellInsets);
+    CGRect textWellFrame = CGRectMake(0, 0, 100, kOUIInspectorWellHeight); // Width doesn't matter; we'll get width-resized as we get put in the stack.
     
     _textWell = [[[[self class] textWellClass] alloc] initWithFrame:textWellFrame];
     _textWell.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     _textWell.rounded = YES;
-    [_textWell setNavigationTarget:nil action:_action];
     
-    _textWell.text = self.title;
+    [_textWell addTarget:nil action:_action forControlEvents:UIControlEventTouchUpInside|UIControlEventValueChanged];
     
-    [view addSubview:_textWell];
-    self.view = view;
+    OUIInspectorTextWellStyle style = [[self class] textWellStyle];
+    _textWell.style = style;
+    
+    if (style == OUIInspectorTextWellStyleSeparateLabelAndText)
+        _textWell.label = self.title;
+    else
+        _textWell.text = self.title;
+
+    self.view = _textWell;
 }
 
 - (void)viewDidUnload;
@@ -75,6 +92,15 @@ RCS_ID("$Id$");
     _textWell = nil;
     
     [super viewDidUnload];
+}
+
+- (void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    if (self.shouldEditOnLoad) {
+        [[self textWell] startEditing];
+        self.shouldEditOnLoad = NO;
+    }
 }
 
 @end

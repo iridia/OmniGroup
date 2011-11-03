@@ -38,6 +38,9 @@ RCS_ID("$Id$");
 
 - (NSComparisonResult)compare:other;
 {
+    if (!other)
+        return NSOrderedSame;
+				
     assert([other isKindOfClass:[self class]]);
     
     NSUInteger mine = index;

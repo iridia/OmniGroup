@@ -1,0 +1,155 @@
+#!/usr/bin/ruby
+#
+#  copystrings [options] SRCFILE ... DSTDIR
+#
+#  Copyright (c) 2008-2009 Apple Inc.  All rights reserved.
+#
+#  This script copies one or more localization .strings files from the provided
+#  source file paths to the destination directory.  The destination files wil
+#  have the same names as the source files.  The validity of each source file is
+#  optionally checked before the file is copied.  Also, the encoding of each of
+#  the files is converted to the specified output encoding (usually UTF-16) as
+#  the file is copied.  The output encoding can be specified
+#  as "binary" to get a binary format instead of a text file.
+#
+
+require 'optparse'
+
+# Process environment variables.
+ICONV = ENV["ICONV"]
+ICONV = "/usr/bin/iconv" if( ICONV == nil  ||  ICONV.length == 0 )
+
+# Gather command line options.
+OPTIONS = {
+    :Validate => false,         # Should we validate each .strings file first?
+    :OutputDir => nil,          # Path of the output directory [required]
+    :InputEnc => nil,           # Input encoding (as arg to textutil)
+    :OutputEnc => 'UTF-16',     # Output encoding; defaults to UTF-16
+}
+begin
+    # Any errors will cause an exception.
+    opts = OptionParser.new() do |opts|
+        opts.banner = "usage: #{File.basename($0)} [options] SRCFILE ... DSTDIR"
+        opts.on("-v", "--[no-]validate", "Check validity before copying") do |flag|
+            OPTIONS[:Validate] = flag
+        end
+        opts.on("-o", "--outdir DIR", "Specify the output directory") do |path|
+            if OPTIONS[:OutputDir] then
+                puts "#{File.basename($0)}: output directory specified more than once"
+                puts opts
+                exit 1
+            end
+            OPTIONS[:OutputDir] = path
+        end
+        opts.on("-i", "--inputencoding ENC", "Input encoding of .strings file (an IANA name)") do |enc|
+            OPTIONS[:InputEnc] = enc
+        end
+        opts.on("-e", "--outputencoding ENC", "Output encoding of .strings file (an IANA name, or \"binary\")") do |enc|
+            OPTIONS[:OutputEnc] = enc
+        end
+        opts.on_tail("-h", "--help", "Show this message") do
+            puts opts
+            exit 1
+        end
+    end
+    opts.parse!
+rescue
+    # Exception was raised; this is an unrecoverable error.
+    puts "#{File.basename($0)}: #{$!}"
+    puts opts
+    exit 1
+end
+
+
+# Make sure we have the inputs we need (though some may come from defaults).
+if OPTIONS[:OutputDir] == nil || OPTIONS[:OutputDir] == '' then
+    puts "#{File.basename($0)}: no output directory specified"
+    puts opts
+    exit 1
+end
+if OPTIONS[:InputEnc] == '' then
+    puts "#{File.basename($0)}: no input encoding specified"
+    puts opts
+    exit 1
+end
+if OPTIONS[:OutputEnc] == nil || OPTIONS[:OutputEnc] == '' then
+    puts "#{File.basename($0)}: no output encoding specified"
+    puts opts
+    exit 1
+end
+
+
+def DiscoverActualEncoding (data)
+    # Tries to discover the actual file encoding by looking at the given file contents.  Returns nil if it can't be figured out, or a string containing the IANA character set name of the discovered encoding.  The implementation of this function is expected to be refined over time so that more and more cases are handled.
+    return nil unless data
+    return "UTF-16BE" if (data[0] == 0xFE && data[1] == 0xFF)
+    return "UTF-16LE" if (data[0] == 0xFF && data[1] == 0xFE)
+    return "UTF-8" if (data[0] == 0xEF && data[1] == 0xBB && data[2] == 0xBF)
+    return nil
+end
+
+
+# ARGV now just contains the input files.  We process each one in turn.
+for path in ARGV do
+    # Read the file contents.
+    begin
+        f = open(path)
+        fileContents = f.read()
+        f.close()
+    rescue
+        puts "#{path}: #{$!.message[/[^-]*/]}"
+        exit 1
+    end
+
+    # Try to infer the encoding from the file contents.  If we figured out an encoding, and if it's substantially different from the declared input encoding, we emit a warning and adjust to the inferred encoding.  This covers existing cases in which the declared file encoding in the Xcode project differs from the actual file encoding on disk.
+    actualEncoding = DiscoverActualEncoding(fileContents)
+    actualEncoding = 'UTF-16' if (actualEncoding == 'UTF-16BE' || actualEncoding == 'UTF-16LE')
+    OPTIONS[:InputEnc] = 'UTF-16' if (OPTIONS[:InputEnc] == 'UTF-16BE' || OPTIONS[:InputEnc] == 'UTF-16LE')
+    if actualEncoding && OPTIONS[:InputEnc] && actualEncoding.upcase != OPTIONS[:InputEnc].upcase then
+        $stderr.puts "#{path}: warning: the specified encoding is #{OPTIONS[:InputEnc]}, but file contents appear to be #{actualEncoding}; treating as #{actualEncoding}"
+        OPTIONS[:InputEnc] = actualEncoding
+    end
+
+    # The 'iconv' tool doesn't deal with UTF-8 encoded byte order marker, so check for this, and strip it off if we find it.  We use a temporary file for this.
+    pathBaseName = File.basename(path);
+    if OPTIONS[:InputEnc].upcase == 'UTF-8' && (fileContents[0] == 0xEF && fileContents[1] == 0xBB && fileContents[2] == 0xBF) then
+        #$stderr.puts "#{path}: warning: input encoding is UTF-8 and the file contents include a leading byte order marker; discarding it"
+        fileContents[0,3] = ''
+        path = File.join("/tmp", "#{pathBaseName}.#{Process.pid}")
+        open(path, 'w') { |f| f.write(fileContents) }
+        pathToRemove = path
+    end
+
+    # For the moment, we just invoke plutil -lint to check the input file.  In the future we should either invoke check_strings or, if we can't ship that script publicly, we do should do something similar to what it's doing (except that we would leave out some of the more archaic things it does, such as enforce big-endian byte order for the UTF-16 encoding, etc).
+    if OPTIONS[:Validate] then
+        system('plutil -lint -s "' + path + '"')
+        if $?.termsig then $stderr.puts "#{File.basename($0)}: warning: plutil terminated with signal #{$?.termsig}" ; end
+        # We currently treat validation issues as warnings, i.e. they don't stop the build.
+    end
+
+    # If an encoding was specified, we use 'iconv' to process it; otherwise, we just copy it.
+    if OPTIONS[:InputEnc] then
+        if OPTIONS[:OutputEnc].downcase == 'binary' then
+           # Invoke plutil -convert to emit a binary plist instead of invoking iconv.
+            system('plutil -convert binary1 -s -o "' + OPTIONS[:OutputDir] + '/' + pathBaseName + '" -- "' + path + '"')
+            if $?.termsig then $stderr.puts "#{File.basename($0)}: warning: plutil terminated with signal #{$?.termsig}" ; exit 1  ; end
+            exit $?.exitstatus unless $?.exitstatus == 0
+        else
+            # Convert the input file to the output encoding (usually UTF-16); the output location is normally in the Resources directory of the product.
+            system(ICONV + ' --from-code="' + OPTIONS[:InputEnc] + '" --to-code="' + OPTIONS[:OutputEnc] + '" "' + path + '" > "' + OPTIONS[:OutputDir] + '/' + pathBaseName + '"')
+            if $?.termsig then $stderr.puts "#{File.basename($0)}: error: iconv terminated with signal #{$?.termsig}" ; exit 1 ; end
+            exit $?.exitstatus unless $?.exitstatus == 0
+        end
+    else
+        # Just copy it; the output location is normally in the Resources directory of the product.
+        system('cp "' + path + '" "' + OPTIONS[:OutputDir] + '/' + pathBaseName + '"')
+        if $?.termsig then $stderr.puts "#{File.basename($0)}: error: cp terminated with signal #{$?.termsig}" ; exit 1 ; end
+        exit $?.exitstatus unless $?.exitstatus == 0
+    end
+
+    # If we created a temporary file, we clean it up now.
+    if pathToRemove then
+        File.unlink(pathToRemove)
+        pathToRemove = nil
+    end
+end

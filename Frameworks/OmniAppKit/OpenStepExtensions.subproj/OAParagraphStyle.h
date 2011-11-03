@@ -1,4 +1,4 @@
-// Copyright 2003-2010 Omni Development, Inc.  All rights reserved.
+// Copyright 2003-2011 Omni Development, Inc. All rights reserved.
 //
 // This software may only be used and reproduced according to the
 // terms in the file OmniSourceLicense.html, which should be
@@ -53,6 +53,7 @@ typedef NSUInteger OATextTabType;
 - (id)initWithType:(OATextTabType)type location:(CGFloat)location;
 - (CGFloat)location;
 - (OATextTabType)tabStopType;
+- (CFTypeRef)copyCTTextTab;
 @end
 
 @interface OAParagraphStyle : OFObject <NSCopying, NSMutableCopying>
@@ -120,6 +121,7 @@ typedef NSUInteger OATextTabType;
 - (void)setLineHeightMultiple:(CGFloat)aFloat;
 - (void)setParagraphSpacingBefore:(CGFloat)aFloat;
 - (void)setDefaultTabInterval:(CGFloat)aFloat;
+- (void)setTabStops:(NSArray *)tabStops;
 @end
 
 #else // Map our symbols to the Mac version

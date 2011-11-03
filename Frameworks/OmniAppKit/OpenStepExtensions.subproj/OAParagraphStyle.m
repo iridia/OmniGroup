@@ -1,4 +1,4 @@
-// Copyright 2003-2010 Omni Development, Inc.  All rights reserved.
+// Copyright 2003-2011 Omni Development, Inc. All rights reserved.
 //
 // This software may only be used and reproduced according to the
 // terms in the file OmniSourceLicense.html, which should be
@@ -14,6 +14,7 @@
 #import <OmniFoundation/NSNumber-OFExtensions-CGTypes.h>
 #import <Foundation/NSArray.h>
 #import <CoreText/CTParagraphStyle.h>
+#import <CoreText/CTTextTab.h>
 
 RCS_ID("$Id$");
 
@@ -98,6 +99,19 @@ RCS_ID("$Id$");
             OBASSERT_NOT_REACHED("Unknown alignemnt");
             return OALeftTextAlignment;
     }
+}
+
+- (CFTypeRef)copyCTTextTab;
+{
+    CTTextAlignment mapping[] = {
+			[OALeftTextAlignment] = kCTLeftTextAlignment,
+			[OARightTextAlignment] = kCTRightTextAlignment,
+			[OACenterTextAlignment] = kCTCenterTextAlignment,
+			[OAJustifiedTextAlignment] = kCTJustifiedTextAlignment,
+			[OANaturalTextAlignment] = kCTNaturalTextAlignment
+    };
+    CTTextTabRef returnedTextTab = CTTextTabCreate(mapping[_alignment], _location, NULL);
+		return returnedTextTab;
 }
 
 @end
@@ -293,8 +307,18 @@ RCS_ID("$Id$");
     SETTING(kCTParagraphStyleSpecifierMaximumLineHeight, CGFloat, _scalar.maximumLineHeight, 0.0);
     SETTING(kCTParagraphStyleSpecifierMinimumLineHeight, CGFloat, _scalar.minimumLineHeight, 0.0);
     SETTING(kCTParagraphStyleSpecifierDefaultTabInterval, CGFloat, _scalar.defaultTabInterval, 0.0);
-
-    /* TODO: Tab stops ( kCTParagraphStyleSpecifierTabStops ) */
+		
+		if ([_tabStops count]) {
+			NSMutableArray *actualTabStops = [NSMutableArray arrayWithCapacity:[_tabStops count]];
+			for (OATextTab *aTextTab in _tabStops) {
+				CTTextTabRef convertedTextTab = [aTextTab copyCTTextTab];
+				if (convertedTextTab) {
+					[actualTabStops addObject:(id)convertedTextTab];
+					CFRelease(convertedTextTab);
+				}
+			}
+			SETTING(kCTParagraphStyleSpecifierTabStops, CFArrayRef, (void *)actualTabStops, nil);
+		}
     
     CTTextAlignment align;
     switch( _scalar.alignment ) {
@@ -320,7 +344,7 @@ RCS_ID("$Id$");
 
     OBASSERT(settingIndex <= OAParagraphStyleNumSettings);
     
-    return CTParagraphStyleCreate(settings, settingIndex);
+		return CTParagraphStyleCreate(settings, settingIndex);
 }
 
 #pragma mark -
@@ -364,12 +388,12 @@ RCS_ID("$Id$");
 
 - (void)setLineSpacing:(CGFloat)aFloat;
 {
-    OBFinishPorting;
+    _scalar.lineSpacing = aFloat;
 }
 
 - (void)setParagraphSpacing:(CGFloat)aFloat;
 {
-    OBFinishPorting;
+    _scalar.paragraphSpacing = aFloat;
 }
 
 - (void)setAlignment:(OATextAlignment)alignment;
@@ -379,47 +403,56 @@ RCS_ID("$Id$");
 
 - (void)setFirstLineHeadIndent:(CGFloat)aFloat;
 {
-    OBFinishPorting;
+    _scalar.firstLineHeadIndent = aFloat;
 }
 
 - (void)setHeadIndent:(CGFloat)aFloat;
 {
-    OBFinishPorting;
+    _scalar.headIndent = aFloat;
 }
 
 - (void)setTailIndent:(CGFloat)aFloat;
 {
-    OBFinishPorting;
+    _scalar.tailIndent = aFloat;
 }
 
 - (void)setMinimumLineHeight:(CGFloat)aFloat;
 {
-    OBFinishPorting;
+    _scalar.minimumLineHeight = aFloat;
 }
 
 - (void)setMaximumLineHeight:(CGFloat)aFloat;
 {
-    OBFinishPorting;
+    _scalar.maximumLineHeight = aFloat;
 }
 
 - (void)setBaseWritingDirection:(OAWritingDirection)writingDirection;
 {
-    OBFinishPorting;
+    _scalar.baseWritingDirection = writingDirection;
 }
 
 - (void)setLineHeightMultiple:(CGFloat)aFloat;
 {
-    OBFinishPorting;
+    _scalar.lineHeightMultiple = aFloat;
 }
 
 - (void)setParagraphSpacingBefore:(CGFloat)aFloat;
 {
-    OBFinishPorting;
+    _scalar.paragraphSpacingBefore = aFloat;
 }
 
 - (void)setDefaultTabInterval:(CGFloat)aFloat;
 {
-    OBFinishPorting;
+    _scalar.defaultTabInterval = aFloat;
+}
+
+- (void)setTabStops:(NSArray *)tabStops;
+{
+    if (_tabStops == tabStops)
+        return;
+
+    [_tabStops release];
+    _tabStops = [tabStops copy];
 }
 
 @end

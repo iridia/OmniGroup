@@ -1,4 +1,4 @@
-// Copyright 2010 The Omni Group.  All rights reserved.
+// Copyright 2010-2011 The Omni Group.  All rights reserved.
 //
 // This software may only be used and reproduced according to the
 // terms in the file OmniSourceLicense.html, which should be
@@ -7,14 +7,13 @@
 //
 // $Id$
 
-#import <UIKit/UIButton.h>
+#import <OmniUI/OUIColorPicker.h>
+#import <OmniUI/OUIColorValue.h>
 
-@interface OUIInspectorToggleButton : UIButton
+@interface OUINoneColorPicker : OUIColorPicker <OUIColorValue>
 {
 @private
-    UIImage *_image;
+    OQColor *_selectedColor;
 }
-
-@property(retain,nonatomic) UIImage *image;
 
 @end

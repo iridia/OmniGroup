@@ -14,6 +14,7 @@
 #import <OmniUI/OUIInspector.h>
 #import <OmniUI/OUISingleDocumentAppController.h>
 #import <OmniUI/OUIUndoIndicator.h>
+#import <OmniUI/UIView-OUIExtensions.h>
 
 RCS_ID("$Id$");
 
@@ -102,7 +103,7 @@ RCS_ID("$Id$");
         return nil;
     }
 
-    _viewController = [[self makeViewController] retain];
+    _viewController = (UIViewController <OUIDocumentViewController> *)[[self makeViewController] retain];
     OBASSERT([_viewController conformsToProtocol:@protocol(OUIDocumentViewController)]);
     OBASSERT(_viewController.document == nil); // we'll set it; -makeViewController shouldn't bother
     _viewController.document = self;
@@ -113,8 +114,6 @@ RCS_ID("$Id$");
     // this implicitly kills any groups; make sure our flag gets cleared too.
     OBASSERT([_undoManager groupingLevel] == 0);
     _hasUndoGroupOpen = NO;
-    
-    [[[OUIAppController controller] undoBarButtonItem] setEnabled:NO];
     
     // If we didn't have a preview
     if (proxy && !proxy.hasPDFPreview)
@@ -137,6 +136,7 @@ RCS_ID("$Id$");
     
     [_undoManager release];
     [_proxy release];
+    [_url release];
     
     [super dealloc];
 }
@@ -184,7 +184,11 @@ RCS_ID("$Id$");
         return;
     
     // Make sure any edits get finished and saved in the current undo group
-    [_viewController.view.window endEditing:YES/*force*/];
+    OUIWithoutAnimating(^{
+        [_viewController.view.window endEditing:YES/*force*/];
+        [_viewController.view layoutIfNeeded];
+    });
+    
     [self finishUndoGroup]; // close any nested group we created
     
     [_undoManager undo];
@@ -231,7 +235,9 @@ RCS_ID("$Id$");
     [_saveTimer invalidate];
     [_saveTimer release];
     _saveTimer = nil;
-    
+		
+		[[_url retain] autorelease];
+		
     if (![self _saveToURL:_url isAutosave:NO error:outError])
         return NO;
     
@@ -331,6 +337,10 @@ RCS_ID("$Id$");
 
 - (BOOL)_saveToURL:(NSURL *)url isAutosave:(BOOL)isAutosave error:(NSError **)outError;
 {
+
+		[[_url retain] autorelease];
+		[[url retain] autorelease];
+
     OBPRECONDITION(!_url || [_url isEqual:url]); // New documents can gain a URL, but we don't intend to have "save as".
     
     if (!url) {
@@ -361,7 +371,7 @@ RCS_ID("$Id$");
         // Remember that we've done an autosave, thus blowing away our last preview. When we close the document, this forces a save with the preview.
         _hasDoneAutosave = YES;
     }
-    
+		    
     if (OFNOTEQUAL(_url, url)) {
         [_url release]; // might be set if we loaded from a template
         _url = [url copy];
@@ -376,6 +386,9 @@ RCS_ID("$Id$");
     [_undoIndicator hide];
     
     NSError *error = nil;
+		
+		[[_url retain] autorelease];
+		
     if (![self _saveToURL:_url isAutosave:YES error:&error])
         OUI_PRESENT_ERROR(error);
 }

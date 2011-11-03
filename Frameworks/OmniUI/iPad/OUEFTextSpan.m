@@ -67,6 +67,14 @@ RCS_ID("$Id$");
 
 - (OAFontDescriptor *)fontDescriptorForInspectorSlice:(OUIInspectorSlice *)inspector;
 {
+    // If the text storage has a font descriptor registered, use that.
+    // This is mostly of interest to OmniStyle where we record the font descriptor as the desired font in our text storage and the other attributes are the derived values.
+    // As a concreted example, we don't want to change a "family=Helvetica" descriptor to "font=Helvetica" descriptor by going through -initWithFont:
+    
+    OAFontDescriptor *fontDescriptor = (OAFontDescriptor *)[frame attribute:(id)OAFontDescriptorAttributeName inRange:self];
+    if (fontDescriptor)
+        return fontDescriptor;
+    
     CTFontRef ctFont = (CTFontRef)[frame attribute:(id)kCTFontAttributeName inRange:self];
     if (!ctFont)
         return nil;
@@ -143,16 +151,19 @@ RCS_ID("$Id$");
 
 - (void)setParagraphStyle:(OAParagraphStyle *)paragraphDescriptor fromInspectorSlice:(OUIInspectorSlice *)inspector;
 {
-    OUEFTextRange *beginningParagraph = (OUEFTextRange *)[[frame tokenizer] rangeEnclosingPosition:start withGranularity:UITextGranularityParagraph inDirection:UITextStorageDirectionForward];
-    
+    OUEFTextRange *beginningParagraph = (OUEFTextRange *)[[frame tokenizer] rangeEnclosingPosition:start withGranularity:UITextGranularityParagraph inDirection:UITextStorageDirectionBackward];
+		
+		//	If the beginning of the paragraph can not be found, for instance when the document only holds one paragraph, start the range from the very beginning
+		
+		if (!beginningParagraph)
+			beginningParagraph = [frame rangeOfLineContainingPosition:[[[OUEFTextPosition alloc] initWithIndex:0] autorelease]];
+		
     OUEFTextRange *fullParagraph;
     if (![beginningParagraph includesPosition:end]) {
-        OUEFTextRange *endingParagraph = (OUEFTextRange *)[[frame tokenizer] rangeEnclosingPosition:end withGranularity:UITextGranularityParagraph inDirection:UITextStorageDirectionBackward];
+        OUEFTextRange *endingParagraph = (OUEFTextRange *)[[frame tokenizer] rangeEnclosingPosition:end withGranularity:UITextGranularityParagraph inDirection:UITextStorageDirectionForward];
         fullParagraph = [beginningParagraph rangeIncludingPosition:(OUEFTextPosition *)endingParagraph.end];
     } else
         fullParagraph = beginningParagraph;
-    
-    NSLog(@"Para range: %@->%@", [self description], [fullParagraph description]);
     
     CTParagraphStyleRef newStyle = [paragraphDescriptor copyCTParagraphStyle];
     [frame setValue:(id)newStyle forAttribute:(id)kCTParagraphStyleAttributeName inRange:fullParagraph];

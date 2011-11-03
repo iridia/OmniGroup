@@ -1,4 +1,4 @@
-// Copyright 2010 The Omni Group.  All rights reserved.
+// Copyright 2010-2011 The Omni Group. All rights reserved.
 //
 // This software may only be used and reproduced according to the
 // terms in the file OmniSourceLicense.html, which should be
@@ -7,33 +7,8 @@
 //
 // $Id$
 
-#import <OmniUI/OUIInspectorSlice.h>
-
-@class OQColor;
-@class OUIColorSwatchPicker, OUIInspectorSelectionValue;
-
-@interface OUIAbstractColorInspectorSlice : OUIInspectorSlice
-{
-@private
-    OUIColorSwatchPicker *_swatchPicker;
-    OUIInspectorSelectionValue *_selectionValue;
-    BOOL _hasAddedColorSinceShowingDetail;
-    BOOL _inContinuousChange;
-}
-
-@property(nonatomic,readonly) OUIColorSwatchPicker *swatchPicker;
-
-- (IBAction)changeColor:(id)sender;
-
-@property(nonatomic,readonly) OUIInspectorSelectionValue *selectionValue;
-
-// Must be subclassed, in addition to -isAppropriateForInspectedObject:.
-- (NSSet *)getColorsFromObject:(id)object;
-- (void)setColor:(OQColor *)color forObject:(id)object;
-- (void)loadColorSwatchesForObject:(id)object;
-
-@end
+#import <OmniUI/OUIColorSwatchPickerInspectorSlice.h>
 
 // Uses the OUIColorInspection to validate objects and get/set colors.
-@interface OUIColorInspectorSlice : OUIAbstractColorInspectorSlice
+@interface OUIColorInspectorSlice : OUIColorSwatchPickerInspectorSlice
 @end

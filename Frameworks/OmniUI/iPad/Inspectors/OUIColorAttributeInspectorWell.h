@@ -7,16 +7,10 @@
 //
 // $Id$
 
-#import <OmniUI/OUIColorInspectorSlice.h>
+#import <OmniUI/OUIInspectorTextWell.h>
 
-@interface OUITextSpanColorAttributeInspectorSlice : OUIAbstractColorInspectorSlice
-{
-@private
-    NSString *_attribute;
-    NSString *_palettePreferenceKey;
-}
+@class OQColor;
 
-@property(nonatomic,copy) NSString *attribute;
-@property(nonatomic,copy) NSString *palettePreferenceKey;
-
+@interface OUIColorAttributeInspectorWell : OUIInspectorTextWell
+@property(nonatomic,retain) OQColor *color;
 @end

@@ -8,6 +8,7 @@
 // $Id$
 
 #import <OmniUI/OUIInspectorSlice.h>
+#import <OmniUI/OUIInspectorTextWell.h> // for OUIInspectorTextWellStyle
 
 /*
  A simple slice with a single text well set up to fire an action.
@@ -19,13 +20,16 @@
 {
 @private
     SEL _action;
+    BOOL _shouldEditOnLoad;
     OUIInspectorTextWell *_textWell;
 }
 
 + (Class)textWellClass;
++ (OUIInspectorTextWellStyle)textWellStyle;
 
 - initWithTitle:(NSString *)title action:(SEL)action;
 
+@property(nonatomic) BOOL shouldEditOnLoad;
 @property(readonly,nonatomic) OUIInspectorTextWell *textWell;
 
 @end

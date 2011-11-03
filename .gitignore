@@ -5,6 +5,7 @@ build
 *.mode2v3
 *.perspectivev3
 *.xcuserdatad
+project.xcworkspace
 
 # old skool
 .svn

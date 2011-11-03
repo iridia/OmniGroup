@@ -7,11 +7,13 @@
 //
 // $Id$
 
-#import <OmniUI/OUIInspectorTextWell.h>
+#import <OmniUI/OUIActionInspectorSlice.h>
 
-@class OQColor;
+@interface OUIEditableTextWellInspectorSlice : OUIActionInspectorSlice
+{
+    BOOL _isUntitled;
+}
 
-@interface OUITextColorInspectorWell : OUIInspectorTextWell
-@property(nonatomic,retain) OQColor *textForegroundColor;
-@property(nonatomic,retain) OQColor *textBackgroundColor;
+@property(nonatomic) BOOL isUntitled;
+
 @end

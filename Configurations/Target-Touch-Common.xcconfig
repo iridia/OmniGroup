@@ -9,7 +9,7 @@ DEBUG_INFORMATION_FORMAT = dwarf-with-dsym
 COPY_PHASE_STRIP = YES
 
 // Use the latest iOS (4.2 currently), for both arm6 and arm7 for all projects now. Only set the architectures if we *are* using the device SDK. If we've picked the simulator, leave it alone.
-SDKROOT = iphoneos
+SDKROOT = iphoneos4.3
 
 // By default, try to load on anything 3.2 or greater. Individual apps may override this.
 IPHONEOS_DEPLOYMENT_TARGET = 3.2
@@ -20,3 +20,6 @@ VALID_ARCHS[sdk=iphoneos*] = armv7
 
 // Unlike gcc and llvm-gcc, clang emits ObjC runtime info for class extensions conforming to protocols. Also, clang has more warning checks than gcc.
 GCC_VERSION = com.apple.compilers.llvm.clang.1_0
+
+// Currently, disable automatic reference counting.
+CLANG_ENABLE_OBJC_ARC = NO
