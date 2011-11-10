@@ -16,6 +16,9 @@
 #import <OmniFoundation/OFStringScanner.h>
 #import <OmniAppKit/OAFontDescriptor.h>
 #import <OmniAppKit/OATextAttributes.h>
+#import <OmniAppKit/OATextStorage.h>
+#import <OmniAppKit/OATextAttachment.h>
+#import <OmniFoundation/OFFileWrapper.h>
 
 #if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
 #import <CoreText/CTParagraphStyle.h>
@@ -610,29 +613,9 @@ static NSMutableDictionary *KeywordActions;
 	};
 
 	NSData *imageData = dataWithHexString(imageDataString);
-	UIImage *lazilyCreatedImage = [UIImage imageWithData:imageData];
-	NSLog(@"image %@", lazilyCreatedImage);
-	
-	switch (introspectedState.imageType) {
-		
-		case 1:
-			NSLog(@"parse WMF");
-			break;
-		
-		case 2:
 
-			OBASSERT(lazilyCreatedImage);
-			break;
-			
-		case 3:
-			
-			OBASSERT(lazilyCreatedImage);
-			break;
-			
-		default:
-			break;
-		
-	};
+	//	FIXME: Image decoding should be done much later
+	//	FIXME: Find a way to transpose the attributes over
 	
 	//	CGSize actualSize = (CGSize) {
 	//		introspectedState.actualImageWidth,
@@ -643,6 +626,14 @@ static NSMutableDictionary *KeywordActions;
 	//		introspectedState.desiredImageWidth,
 	//		introspectedState.desiredImageHeight
 	//	};
+	
+	OFFileWrapper *fileWrapper = [[[OFFileWrapper alloc] initRegularFileWithContents:imageData] autorelease];
+	OATextAttachment *textAttachment = [[[OATextAttachment alloc] initWithFileWrapper:fileWrapper] autorelease];
+	
+	NSString *attachmentString = [NSString stringWithCharacter:OAAttachmentCharacter];
+	NSDictionary *attachmentStringAttributes = [NSDictionary dictionaryWithObject:textAttachment forKey:OAAttachmentAttributeName];
+	
+	[_attributedString appendString:attachmentString attributes:attachmentStringAttributes];
 
 }
 
