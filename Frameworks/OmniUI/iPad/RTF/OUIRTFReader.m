@@ -56,6 +56,15 @@ RCS_ID("$Id$");
 - (void)_actionReadFontCharacterSet:(int)characterSet;
 - (NSString *)_fontNameAtIndex:(int)fontTableIndex;
 
+- (void)_actionReadImage;
+- (void)_actionImageFormatWMF;
+- (void)_actionImageFormatPNG;
+- (void)_actionImageFormatJPEG;
+- (void)_actionReadImageWidthValue:(long int)actualWidth;
+- (void)_actionReadImageHeightValue:(long int)actualHeight;
+- (void)_actionReadDesiredImageWidthValue:(long int)desiredWidth;
+- (void)_actionReadDesiredImageHeightValue:(long int)desiredHeight;
+
 - (void)_actionUnderline:(int)value;
 - (void)_actionUnderlineStyle:(int)value;
 
@@ -103,6 +112,16 @@ RCS_ID("$Id$");
         int leftIndent;
         int rightIndent;
     } _paragraph;
+		
+		struct {
+		
+			int type;	//	FIXME: use an enum
+			long int actualWidth;
+			long int actualHeight;
+			long int desiredWidth;
+			long int desiredHeight;
+		
+		} _image;
 
     NSMutableDictionary *_cachedStringAttributes;
 }
@@ -120,6 +139,12 @@ RCS_ID("$Id$");
 @property (nonatomic) int paragraphFirstLineIndent;
 @property (nonatomic) int paragraphLeftIndent;
 @property (nonatomic) int paragraphRightIndent;
+
+@property (nonatomic) long int actualImageWidth;
+@property (nonatomic) long int actualImageHeight;
+@property (nonatomic) long int desiredImageWidth;
+@property (nonatomic) long int desiredImageHeight;
+@property (nonatomic) int imageType;
 
 - (NSMutableDictionary *)stringAttributesForReader:(OUIRTFReader *)reader;
 - (CFStringEncoding)fontEncoding;
@@ -258,6 +283,16 @@ static NSMutableDictionary *KeywordActions;
     [self _registerKeyword:@"fonttbl" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadFontTable)] autorelease]];
     [self _registerKeyword:@"fcharset" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadFontCharacterSet:)] autorelease]];
 
+		//	Image destination
+    [self _registerKeyword:@"pict" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadImage)] autorelease]];
+    [self _registerKeyword:@"wmetafile" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionImageFormatWMF)] autorelease]];
+    [self _registerKeyword:@"pngblip" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionImageFormatPNG)] autorelease]];
+    [self _registerKeyword:@"jpegblip" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionImageFormatJPEG)] autorelease]];
+    [self _registerKeyword:@"picw" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadImageWidthValue:)] autorelease]];
+    [self _registerKeyword:@"pich" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadImageHeightValue:)] autorelease]];
+    [self _registerKeyword:@"picwgoal" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadDesiredImageWidthValue:)] autorelease]];
+    [self _registerKeyword:@"pichgoal" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadDesiredImageHeightValue:)] autorelease]];
+
     // Unsupported destinations
     [self _registerKeyword:@"author" action:skipDestinationAction];
     [self _registerKeyword:@"buptim" action:skipDestinationAction];
@@ -279,7 +314,6 @@ static NSMutableDictionary *KeywordActions;
     [self _registerKeyword:@"info" action:skipDestinationAction];
     [self _registerKeyword:@"keywords" action:skipDestinationAction];
     [self _registerKeyword:@"operator" action:skipDestinationAction];
-    [self _registerKeyword:@"pict" action:skipDestinationAction];
     [self _registerKeyword:@"printim" action:skipDestinationAction];
     [self _registerKeyword:@"private1" action:skipDestinationAction];
     [self _registerKeyword:@"revtim" action:skipDestinationAction];
@@ -525,6 +559,128 @@ static NSMutableDictionary *KeywordActions;
     return fontTableEntry.encoding;
 }
 
+- (void) _actionReadImage {
+
+	NSMutableString *imageDataString = [NSMutableString string];
+	OUIRTFReaderState *introspectedState = _currentState;
+	[[introspectedState retain] autorelease];
+
+	_currentState.alternateDestination = imageDataString;
+	[self _parseRTFGroupWithSemicolonAction:nil];
+	
+	NSData * (^dataWithHexString)(NSString *) = ^ (NSString *hexString) {	
+	
+		//	http://weblog.bignerdranch.com/Bonzo/BNZHex/BNZHex.m
+
+		// Hex Lookup Table
+		unsigned char HEX_LOOKUP[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 
+			6, 7, 8, 9, 0, 0, 0, 0, 0, 0, 0, 10, 11, 12, 13, 14, 15, 0, 0, 
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+			0, 0, 0, 10, 11, 12, 13, 14, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		
+		// If we have an odd number of characters, add an extra digit, rounding the
+		// size of the NSData up to the nearest byte
+		if ([hexString length] % 2 == 1)  {
+			hexString = [NSString stringWithFormat:@"0%@", hexString]; 
+		}
+		
+		// Iterate through the string, adding each character (equivilent to 1/2 
+		// byte) to the NSData result
+		int i;
+		char current;
+		const int size = [hexString length] / 2;
+		const char * stringBuffer = [hexString cStringUsingEncoding:NSASCIIStringEncoding];
+		NSMutableData* result = [NSMutableData dataWithLength:size];
+		char * resultBuffer = [result mutableBytes];
+		for (i = 0; i < size; i++) {
+			// Get first character, use as high order bits
+			current = stringBuffer[i * 2];
+			resultBuffer[i] = HEX_LOOKUP[(int)current] << 4;
+			
+			// Get second character, use as low order bits
+			current = stringBuffer[(i * 2) + 1];
+			resultBuffer[i] = resultBuffer[i] | HEX_LOOKUP[(int)current];
+		}
+		
+		return [NSData dataWithData:result];
+		
+	};
+
+	NSData *imageData = dataWithHexString(imageDataString);
+	UIImage *lazilyCreatedImage = [UIImage imageWithData:imageData];
+	NSLog(@"image %@", lazilyCreatedImage);
+	
+	switch (introspectedState.imageType) {
+		
+		case 1:
+			NSLog(@"parse WMF");
+			break;
+		
+		case 2:
+
+			OBASSERT(lazilyCreatedImage);
+			break;
+			
+		case 3:
+			
+			OBASSERT(lazilyCreatedImage);
+			break;
+			
+		default:
+			break;
+		
+	};
+	
+	//	CGSize actualSize = (CGSize) {
+	//		introspectedState.actualImageWidth,
+	//		introspectedState.actualImageHeight
+	//	};
+	//	
+	//	CGSize desiredSize = (CGSize) {
+	//		introspectedState.desiredImageWidth,
+	//		introspectedState.desiredImageHeight
+	//	};
+
+}
+
+- (void) _actionImageFormatWMF;
+{
+	_currentState.imageType = 1;
+}
+
+- (void) _actionImageFormatJPEG;
+{
+	_currentState.imageType = 2;
+}
+
+- (void) _actionImageFormatPNG;
+{
+	_currentState.imageType = 3;
+}
+
+- (void) _actionReadImageHeightValue:(long)actualHeight;
+{
+	_currentState.actualImageHeight = actualHeight;
+}
+
+- (void) _actionReadImageWidthValue:(long)actualWidth;
+{
+	_currentState.actualImageWidth = actualWidth;
+}
+
+- (void) _actionReadDesiredImageWidthValue:(long)desiredWidth;
+{
+	_currentState.desiredImageWidth = desiredWidth;
+}
+
+- (void) _actionReadDesiredImageHeightValue:(long)desiredHeight;
+{
+	_currentState.desiredImageHeight = desiredHeight;
+}
+
 #pragma mark -
 #pragma mark Actions
 
@@ -717,7 +873,7 @@ static NSMutableDictionary *KeywordActions;
 }
 
 - (void)_parseHexByte;
-{
+{	
     UInt8 hexBytes[2];
     CFIndex numBytes = 0;
     hexBytes[numBytes++] = [_scanner scanHexadecimalNumberMaximumDigits:2];
@@ -1027,6 +1183,56 @@ static NSMutableDictionary *KeywordActions;
     _paragraph.rightIndent = newValue;
 
     [self _resetCache];
+}
+
+- (long int) actualImageWidth;
+{
+	return _image.actualWidth;
+}
+
+- (void) setActualImageWidth:(long)newActualImageWidth;
+{
+	_image.actualWidth = newActualImageWidth;
+}
+
+- (long int) actualImageHeight;
+{
+	return _image.actualHeight;
+}
+
+- (void) setActualImageHeight:(long)newActualImageHeight
+{
+	_image.actualHeight = newActualImageHeight;
+}
+
+- (long int) desiredImageWidth;
+{
+	return _image.desiredWidth;
+}
+
+- (void) setDesiredImageWidth:(long)newDesiredImageWidth;
+{
+	_image.desiredWidth = newDesiredImageWidth;
+}
+
+- (long int) desiredImageHeight;
+{
+	return _image.desiredHeight;
+}
+
+- (void) setDesiredImageHeight:(long)newDesiredImageHeight;
+{
+	_image.desiredHeight = newDesiredImageHeight;
+}
+
+- (int) imageType;
+{
+	return _image.type;
+}
+
+- (void) setImageType:(int)newImageType;
+{
+	_image.type = newImageType;
 }
 
 #pragma mark -
