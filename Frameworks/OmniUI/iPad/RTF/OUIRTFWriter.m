@@ -14,6 +14,10 @@
 #import <OmniAppKit/OAFontDescriptor.h>
 #import <OmniAppKit/OATextAttributes.h>
 
+#import <OmniAppKit/OATextStorage.h>
+#import <OmniAppKit/OATextAttachment.h>
+#import <OmniFoundation/OFFileWrapper.h>
+
 #if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
 #import <CoreText/CTParagraphStyle.h>
 #import <CoreText/CTStringAttributes.h>
@@ -41,6 +45,12 @@ RCS_ID("$Id$");
 
 - (id)initWithColor:(id)color;
 - (void)writeToDataBuffer:(OFDataBuffer *)dataBuffer;
+
+@end
+
+@interface OATextAttachment (OUIRTFWriter)
+
+- (void) _writeImageRTFGroupInDataBuffer:(OFDataBuffer *)buffer;
 
 @end
 
@@ -324,10 +334,16 @@ static const struct {
 - (void)_writeAttributes:(NSDictionary *)newAttributes beginningOfParagraph:(BOOL)beginningOfParagraph;
 {
     OMNI_POOL_START {
-        [self _writeFontAttributes:newAttributes];
+        
+				[self _writeFontAttributes:newAttributes];
         [self _writeColorAttributes:newAttributes];
         if (beginningOfParagraph)
             [self _writeParagraphAttributes:newAttributes];
+				
+				OATextAttachment *attachment = [newAttributes objectForKey:OAAttachmentAttributeName];
+				if (attachment)
+					[attachment _writeImageRTFGroupInDataBuffer:_dataBuffer];
+				
     } OMNI_POOL_END;
 }
 
@@ -542,5 +558,16 @@ static inline void writeString(OFDataBuffer *dataBuffer, NSString *string)
     // We are immutable!
     return [self retain];
 }
+
+@end
+
+
+@implementation OATextAttachment (OUIRTFWriter)
+
+- (void) _writeImageRTFGroupInDataBuffer:(OFDataBuffer *)buffer;
+{
+	NSData *writtenImageData = [self.fileWrapper regularFileContents];
+	NSLog(@"write image data <%@: 0x%x> (%ld bytes) into buffer", NSStringFromClass([writtenImageData class]), (unsigned int)writtenImageData, [writtenImageData length]);
+};
 
 @end
