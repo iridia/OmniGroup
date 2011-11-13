@@ -31,12 +31,15 @@ RCS_ID("$Id$");
 
     _cell.attachment = nil;
     [_cell release];
+		
+		[_userInfo release];
     
     [super dealloc];
 }
 
 @synthesize fileWrapper = _fileWrapper;
 @synthesize attachmentCell = _cell;
+@synthesize userInfo = _userInfo;
 - (void)setAttachmentCell:(id <OATextAttachmentCell>)cell;
 {
     if (_cell == cell)

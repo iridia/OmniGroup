@@ -13,6 +13,7 @@
 #import <OmniFoundation/NSMutableAttributedString-OFExtensions.h>
 #import <OmniFoundation/NSMutableDictionary-OFExtensions.h>
 #import <OmniFoundation/NSNumber-OFExtensions-CGTypes.h>
+#import <OmniFoundation/NSData-OFEncoding.h>
 #import <OmniFoundation/OFStringScanner.h>
 #import <OmniAppKit/OAFontDescriptor.h>
 #import <OmniAppKit/OATextAttributes.h>
@@ -571,64 +572,29 @@ static NSMutableDictionary *KeywordActions;
 	_currentState.alternateDestination = imageDataString;
 	[self _parseRTFGroupWithSemicolonAction:nil];
 	
-	NSData * (^dataWithHexString)(NSString *) = ^ (NSString *hexString) {	
-	
-		//	http://weblog.bignerdranch.com/Bonzo/BNZHex/BNZHex.m
+	NSError *decodingError = nil;
+	NSData *imageData = [NSData dataWithHexString:imageDataString error:&decodingError];
+	if (!imageData)
+		NSLog(@"Error decoding: %@", decodingError);
 
-		// Hex Lookup Table
-		unsigned char HEX_LOOKUP[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 
-			6, 7, 8, 9, 0, 0, 0, 0, 0, 0, 0, 10, 11, 12, 13, 14, 15, 0, 0, 
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-			0, 0, 0, 10, 11, 12, 13, 14, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		
-		// If we have an odd number of characters, add an extra digit, rounding the
-		// size of the NSData up to the nearest byte
-		if ([hexString length] % 2 == 1)  {
-			hexString = [NSString stringWithFormat:@"0%@", hexString]; 
-		}
-		
-		// Iterate through the string, adding each character (equivilent to 1/2 
-		// byte) to the NSData result
-		int i;
-		char current;
-		const int size = [hexString length] / 2;
-		const char * stringBuffer = [hexString cStringUsingEncoding:NSASCIIStringEncoding];
-		NSMutableData* result = [NSMutableData dataWithLength:size];
-		char * resultBuffer = [result mutableBytes];
-		for (i = 0; i < size; i++) {
-			// Get first character, use as high order bits
-			current = stringBuffer[i * 2];
-			resultBuffer[i] = HEX_LOOKUP[(int)current] << 4;
-			
-			// Get second character, use as low order bits
-			current = stringBuffer[(i * 2) + 1];
-			resultBuffer[i] = resultBuffer[i] | HEX_LOOKUP[(int)current];
-		}
-		
-		return [NSData dataWithData:result];
-		
-	};
-
-	NSData *imageData = dataWithHexString(imageDataString);
-
-	//	FIXME: Image decoding should be done much later
-	//	FIXME: Find a way to transpose the attributes over
-	
-	//	CGSize actualSize = (CGSize) {
-	//		introspectedState.actualImageWidth,
-	//		introspectedState.actualImageHeight
-	//	};
-	//	
-	//	CGSize desiredSize = (CGSize) {
-	//		introspectedState.desiredImageWidth,
-	//		introspectedState.desiredImageHeight
-	//	};
-	
 	OFFileWrapper *fileWrapper = [[[OFFileWrapper alloc] initRegularFileWithContents:imageData] autorelease];
 	OATextAttachment *textAttachment = [[[OATextAttachment alloc] initWithFileWrapper:fileWrapper] autorelease];
+	
+	textAttachment.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+	
+		CGSizeCreateDictionaryRepresentation((CGSize) {
+			introspectedState.actualImageWidth,
+			introspectedState.actualImageHeight
+		}), @"actualSize",
+		
+		CGSizeCreateDictionaryRepresentation((CGSize) {
+			introspectedState.desiredImageWidth,
+			introspectedState.desiredImageHeight
+		}), @"desiredSize",
+		
+		[NSNumber numberWithInt:_currentState.imageType], @"imageType",
+	
+	nil];
 	
 	NSString *attachmentString = [NSString stringWithCharacter:OAAttachmentCharacter];
 	NSDictionary *attachmentStringAttributes = [NSDictionary dictionaryWithObject:textAttachment forKey:OAAttachmentAttributeName];

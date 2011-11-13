@@ -19,12 +19,14 @@
 @private
     OFFileWrapper *_fileWrapper;
     id <OATextAttachmentCell> _cell;
+		NSDictionary *_userInfo;
 }
 
 - initWithFileWrapper:(OFFileWrapper *)fileWrapper;
 
 @property(nonatomic,retain) OFFileWrapper *fileWrapper;
 @property(nonatomic,retain) id <OATextAttachmentCell> attachmentCell;
+@property(nonatomic,retain) NSDictionary *userInfo;
 
 @end
 
