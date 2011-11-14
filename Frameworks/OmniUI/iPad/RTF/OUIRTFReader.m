@@ -582,12 +582,12 @@ static NSMutableDictionary *KeywordActions;
 	
 	textAttachment.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
 	
-		CGSizeCreateDictionaryRepresentation((CGSize) {
+		(id)CGSizeCreateDictionaryRepresentation((CGSize) {
 			introspectedState.actualImageWidth,
 			introspectedState.actualImageHeight
 		}), @"actualSize",
 		
-		CGSizeCreateDictionaryRepresentation((CGSize) {
+		(id)CGSizeCreateDictionaryRepresentation((CGSize) {
 			introspectedState.desiredImageWidth,
 			introspectedState.desiredImageHeight
 		}), @"desiredSize",
