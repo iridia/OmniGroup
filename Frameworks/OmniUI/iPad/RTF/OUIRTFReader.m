@@ -48,6 +48,7 @@ RCS_ID("$Id$");
 - (void)_pushRTFState;
 - (void)_popRTFState;
 - (void)_actionSkipDestination;
+- (void)_actionUnskipDestination;
 
 - (CGColorRef)_newCurrentColorTableCGColor;
 - (void)_resetCurrentColorTableColor;
@@ -226,6 +227,7 @@ static NSMutableDictionary *KeywordActions;
     KeywordActions = [[NSMutableDictionary alloc] init];
 
     OUIRTFReaderAction *skipDestinationAction = [[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionSkipDestination)] autorelease];
+		OUIRTFReaderAction *unskipDestinationAction = [[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionUnskipDestination)] autorelease];
 
     // Unicode characters
     [self _registerKeyword:@"uc" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionSetUnicodeSkipCount:)] autorelease]];
@@ -289,6 +291,9 @@ static NSMutableDictionary *KeywordActions;
 
 		//	Image destination
     [self _registerKeyword:@"pict" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadImage)] autorelease]];
+    [self _registerKeyword:@"shppict" action:unskipDestinationAction];
+    [self _registerKeyword:@"nonshppict" action:skipDestinationAction];
+		
     [self _registerKeyword:@"wmetafile" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionImageFormatWMF)] autorelease]];
     [self _registerKeyword:@"pngblip" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionImageFormatPNG)] autorelease]];
     [self _registerKeyword:@"jpegblip" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionImageFormatJPEG)] autorelease]];
@@ -441,6 +446,15 @@ static NSMutableDictionary *KeywordActions;
     _currentState->_flags.discardText = YES;
 }
 
+- (void)_actionUnskipDestination;
+{
+#ifdef DEBUG_RTF_READER
+	NSLog(@"Unskipping destination");
+#endif
+	_currentState->_flags.discardText = NO;
+}
+
+
 #pragma mark -
 #pragma mark Parse color table
 
@@ -579,27 +593,25 @@ static NSMutableDictionary *KeywordActions;
 	
 	/*
 	
-		{\*\shppict
-			{\pict
+		{\*\shppict{\pict
 				
-				{\*\picprop
-					\shplid1025
-					{\sp{\sn shapeType}{\sv 75}}
-					{\sp{\sn fFlipH}{\sv 0}}
-					{\sp{\sn fFlipV}{\sv 0}}
-					{\sp{\sn fLine}{\sv 0}}
-					{\sp{\sn fLayoutInCell}{\sv 1}}
-				}
-				
-				\picscalex<#> \picscaley<#>
-				\piccropl<#> \piccropr<#> \piccropt<#> \piccropb<#>
-				\picw<#> \pich<#> \picwgoal<#> \pichgoal<#>
-				
-				\pngblip
-				\bliptag62808820
-				{\*\blipuid … }
+			{\*\picprop \shplid # {\sp{\sn … }{\sv # }} …}
+			\picscalex# \picscaley# \piccropl# \piccropr#, \piccropt#, \piccropb# \picw# \pich# \picwgoal# \pichgoal#
+			\pngblip \bliptag# {\*\blipuid # }
 
-				…
+			<PNG Data in Hex>
+			
+		}}
+		
+		{\nonshppict{\pict
+			
+			\picscalex# \picscaley# \piccropl# \piccropr# \piccropt# \piccropb# \picw# \pich# \picwgoal# \pichgoal#
+			\wmetafile#
+			\bliptag# \blipupi# {\*\blipuid <data, 32 bytes> }
+			
+			<WMF Data in Hex>
+			
+		}}
 	
 	*/
 	
@@ -611,7 +623,7 @@ static NSMutableDictionary *KeywordActions;
 	//	So, undo the potential discard.
 	
 	_currentState.alternateDestination = imageDataString;
-	_currentState->_flags.discardText = NO;
+	//	_currentState->_flags.discardText = NO;	-> we undo the skipping in shppict, and skips in nonshppict	
 	
 	[self _parseRTFGroupWithSemicolonAction:nil];
 	
@@ -623,26 +635,40 @@ static NSMutableDictionary *KeywordActions;
 	OFFileWrapper *fileWrapper = [[[OFFileWrapper alloc] initRegularFileWithContents:imageData] autorelease];
 	OATextAttachment *textAttachment = [[[OATextAttachment alloc] initWithFileWrapper:fileWrapper] autorelease];
 	
+	CFDictionaryRef actualSizeRep = CGSizeCreateDictionaryRepresentation((CGSize) {
+		introspectedState.actualImageWidth,
+		introspectedState.actualImageHeight
+	});
+	
+	CFDictionaryRef desiredSizeRep = CGSizeCreateDictionaryRepresentation((CGSize) {
+		introspectedState.desiredImageWidth,
+		introspectedState.desiredImageHeight
+	});
+	
 	textAttachment.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
-	
-		(id)CGSizeCreateDictionaryRepresentation((CGSize) {
-			introspectedState.actualImageWidth,
-			introspectedState.actualImageHeight
-		}), @"actualSize",
-		
-		(id)CGSizeCreateDictionaryRepresentation((CGSize) {
-			introspectedState.desiredImageWidth,
-			introspectedState.desiredImageHeight
-		}), @"desiredSize",
-		
 		[NSNumber numberWithInt:_currentState.imageType], @"imageType",
-	
+		actualSizeRep, @"actualSize",
+		desiredSizeRep, @"desiredSize",
 	nil];
 	
-	NSString *attachmentString = [NSString stringWithCharacter:OAAttachmentCharacter];
+	if (actualSizeRep)
+		CFRelease(actualSizeRep);
+	
+	if (desiredSizeRep)
+		CFRelease(desiredSizeRep);
+	
+	NSString *attachmentString = [NSString stringWithCharacter:(unichar)OAAttachmentCharacter];
 	NSDictionary *attachmentStringAttributes = [NSDictionary dictionaryWithObject:textAttachment forKey:OAAttachmentAttributeName];
 	
-	[_attributedString appendString:attachmentString attributes:attachmentStringAttributes];
+	if (_currentState->_flags.discardText)
+		return;
+
+	NSMutableString *currentAlternateDestination = _currentState->_alternateDestination;
+	if (currentAlternateDestination) {
+		[currentAlternateDestination appendString:attachmentString];
+	} else {
+		[_attributedString appendString:attachmentString attributes:attachmentStringAttributes];
+	}
 
 }
 
