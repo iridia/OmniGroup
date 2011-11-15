@@ -568,8 +568,51 @@ static NSMutableDictionary *KeywordActions;
 	NSMutableString *imageDataString = [NSMutableString string];
 	OUIRTFReaderState *introspectedState = _currentState;
 	[[introspectedState retain] autorelease];
+	
+	//	_currentState->_flags.discardText, by default, is set to YES.
+	
+	//	whenever the RTF reader encounters a * keyword,
+	//	which denotes a property later added to the RTF spec,
+	//	the reason being that older RTF readers would ignore keywords prefixed with the asterisk.
+	
+	//	This causes images written by Microsoft Word not showing up, since it writes stuff like this:
+	
+	/*
+	
+		{\*\shppict
+			{\pict
+				
+				{\*\picprop
+					\shplid1025
+					{\sp{\sn shapeType}{\sv 75}}
+					{\sp{\sn fFlipH}{\sv 0}}
+					{\sp{\sn fFlipV}{\sv 0}}
+					{\sp{\sn fLine}{\sv 0}}
+					{\sp{\sn fLayoutInCell}{\sv 1}}
+				}
+				
+				\picscalex<#> \picscaley<#>
+				\piccropl<#> \piccropr<#> \piccropt<#> \piccropb<#>
+				\picw<#> \pich<#> \picwgoal<#> \pichgoal<#>
+				
+				\pngblip
+				\bliptag62808820
+				{\*\blipuid … }
 
+				…
+	
+	*/
+	
+	//	Per RTF 1.5 specification, RTF image entities that Word exports holds TWO image entities, while the first one is what Words uses,
+	//	and the second one contains the “normal” WMF/EMF-based image for compatibility.
+	
+	//	We’re not interested in the WMF/EMF version right now.
+	//	Since the * keyword precludes the pict keyword, the actual hex string is thrown away by default.
+	//	So, undo the potential discard.
+	
 	_currentState.alternateDestination = imageDataString;
+	_currentState->_flags.discardText = NO;
+	
 	[self _parseRTFGroupWithSemicolonAction:nil];
 	
 	NSError *decodingError = nil;
