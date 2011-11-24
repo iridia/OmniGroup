@@ -646,7 +646,7 @@ static NSMutableDictionary *KeywordActions;
 	});
 	
 	textAttachment.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
-		[NSNumber numberWithInt:_currentState.imageType], @"imageType",
+		[NSNumber numberWithInt:introspectedState.imageType], @"imageType",
 		actualSizeRep, @"actualSize",
 		desiredSizeRep, @"desiredSize",
 	nil];
