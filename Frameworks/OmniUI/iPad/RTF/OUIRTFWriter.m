@@ -606,14 +606,14 @@ static inline void writeString(OFDataBuffer *dataBuffer, NSString *string)
 	}
 	
 	OFDataBufferAppendCString(buffer, "\\picw");
-	OFDataBufferAppendInteger(buffer, (int)(roundf(actualSize.width * 20)));
+	OFDataBufferAppendInteger(buffer, (int)(roundf(actualSize.width)));
 	OFDataBufferAppendCString(buffer, "\\pich");
-	OFDataBufferAppendInteger(buffer, (int)(roundf(actualSize.height * 20)));
+	OFDataBufferAppendInteger(buffer, (int)(roundf(actualSize.height)));
 	
 	OFDataBufferAppendCString(buffer, "\\picwgoal");
-	OFDataBufferAppendInteger(buffer, (int)(roundf(desiredSize.width * 20)));
+	OFDataBufferAppendInteger(buffer, (int)(roundf(desiredSize.width)));
 	OFDataBufferAppendCString(buffer, "\\pichgoal");
-	OFDataBufferAppendInteger(buffer, (int)(roundf(desiredSize.height * 20)));
+	OFDataBufferAppendInteger(buffer, (int)(roundf(desiredSize.height)));
 	
 	OFDataBufferAppendCString(buffer, "\n");
 
