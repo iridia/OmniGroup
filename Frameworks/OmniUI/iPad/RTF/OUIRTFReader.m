@@ -13,9 +13,13 @@
 #import <OmniFoundation/NSMutableAttributedString-OFExtensions.h>
 #import <OmniFoundation/NSMutableDictionary-OFExtensions.h>
 #import <OmniFoundation/NSNumber-OFExtensions-CGTypes.h>
+#import <OmniFoundation/NSData-OFEncoding.h>
 #import <OmniFoundation/OFStringScanner.h>
 #import <OmniAppKit/OAFontDescriptor.h>
 #import <OmniAppKit/OATextAttributes.h>
+#import <OmniAppKit/OATextStorage.h>
+#import <OmniAppKit/OATextAttachment.h>
+#import <OmniFoundation/OFFileWrapper.h>
 
 #if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
 #import <CoreText/CTParagraphStyle.h>
@@ -44,6 +48,7 @@ RCS_ID("$Id$");
 - (void)_pushRTFState;
 - (void)_popRTFState;
 - (void)_actionSkipDestination;
+- (void)_actionUnskipDestination;
 
 - (CGColorRef)_newCurrentColorTableCGColor;
 - (void)_resetCurrentColorTableColor;
@@ -55,6 +60,15 @@ RCS_ID("$Id$");
 - (void)_actionReadFontTable;
 - (void)_actionReadFontCharacterSet:(int)characterSet;
 - (NSString *)_fontNameAtIndex:(int)fontTableIndex;
+
+- (void)_actionReadImage;
+- (void)_actionImageFormatWMF;
+- (void)_actionImageFormatPNG;
+- (void)_actionImageFormatJPEG;
+- (void)_actionReadImageWidthValue:(long int)actualWidth;
+- (void)_actionReadImageHeightValue:(long int)actualHeight;
+- (void)_actionReadDesiredImageWidthValue:(long int)desiredWidth;
+- (void)_actionReadDesiredImageHeightValue:(long int)desiredHeight;
 
 - (void)_actionUnderline:(int)value;
 - (void)_actionUnderlineStyle:(int)value;
@@ -103,6 +117,16 @@ RCS_ID("$Id$");
         int leftIndent;
         int rightIndent;
     } _paragraph;
+		
+		struct {
+		
+			int type;	//	FIXME: use an enum
+			long int actualWidth;
+			long int actualHeight;
+			long int desiredWidth;
+			long int desiredHeight;
+		
+		} _image;
 
     NSMutableDictionary *_cachedStringAttributes;
 }
@@ -120,6 +144,12 @@ RCS_ID("$Id$");
 @property (nonatomic) int paragraphFirstLineIndent;
 @property (nonatomic) int paragraphLeftIndent;
 @property (nonatomic) int paragraphRightIndent;
+
+@property (nonatomic) long int actualImageWidth;
+@property (nonatomic) long int actualImageHeight;
+@property (nonatomic) long int desiredImageWidth;
+@property (nonatomic) long int desiredImageHeight;
+@property (nonatomic) int imageType;
 
 - (NSMutableDictionary *)stringAttributesForReader:(OUIRTFReader *)reader;
 - (CFStringEncoding)fontEncoding;
@@ -197,6 +227,7 @@ static NSMutableDictionary *KeywordActions;
     KeywordActions = [[NSMutableDictionary alloc] init];
 
     OUIRTFReaderAction *skipDestinationAction = [[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionSkipDestination)] autorelease];
+		OUIRTFReaderAction *unskipDestinationAction = [[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionUnskipDestination)] autorelease];
 
     // Unicode characters
     [self _registerKeyword:@"uc" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionSetUnicodeSkipCount:)] autorelease]];
@@ -258,6 +289,19 @@ static NSMutableDictionary *KeywordActions;
     [self _registerKeyword:@"fonttbl" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadFontTable)] autorelease]];
     [self _registerKeyword:@"fcharset" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadFontCharacterSet:)] autorelease]];
 
+		//	Image destination
+    [self _registerKeyword:@"pict" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadImage)] autorelease]];
+    [self _registerKeyword:@"shppict" action:unskipDestinationAction];
+    [self _registerKeyword:@"nonshppict" action:skipDestinationAction];
+		
+    [self _registerKeyword:@"wmetafile" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionImageFormatWMF)] autorelease]];
+    [self _registerKeyword:@"pngblip" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionImageFormatPNG)] autorelease]];
+    [self _registerKeyword:@"jpegblip" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionImageFormatJPEG)] autorelease]];
+    [self _registerKeyword:@"picw" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadImageWidthValue:)] autorelease]];
+    [self _registerKeyword:@"pich" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadImageHeightValue:)] autorelease]];
+    [self _registerKeyword:@"picwgoal" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadDesiredImageWidthValue:)] autorelease]];
+    [self _registerKeyword:@"pichgoal" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadDesiredImageHeightValue:)] autorelease]];
+
     // Unsupported destinations
     [self _registerKeyword:@"author" action:skipDestinationAction];
     [self _registerKeyword:@"buptim" action:skipDestinationAction];
@@ -279,7 +323,6 @@ static NSMutableDictionary *KeywordActions;
     [self _registerKeyword:@"info" action:skipDestinationAction];
     [self _registerKeyword:@"keywords" action:skipDestinationAction];
     [self _registerKeyword:@"operator" action:skipDestinationAction];
-    [self _registerKeyword:@"pict" action:skipDestinationAction];
     [self _registerKeyword:@"printim" action:skipDestinationAction];
     [self _registerKeyword:@"private1" action:skipDestinationAction];
     [self _registerKeyword:@"revtim" action:skipDestinationAction];
@@ -403,6 +446,15 @@ static NSMutableDictionary *KeywordActions;
     _currentState->_flags.discardText = YES;
 }
 
+- (void)_actionUnskipDestination;
+{
+#ifdef DEBUG_RTF_READER
+	NSLog(@"Unskipping destination");
+#endif
+	_currentState->_flags.discardText = NO;
+}
+
+
 #pragma mark -
 #pragma mark Parse color table
 
@@ -523,6 +575,136 @@ static NSMutableDictionary *KeywordActions;
     if ([fontTableEntry isNull])
         return DefaultFontEncoding;
     return fontTableEntry.encoding;
+}
+
+- (void) _actionReadImage {
+
+	NSMutableString *imageDataString = [NSMutableString string];
+	OUIRTFReaderState *introspectedState = _currentState;
+	[[introspectedState retain] autorelease];
+	
+	//	_currentState->_flags.discardText, by default, is set to YES.
+	
+	//	whenever the RTF reader encounters a * keyword,
+	//	which denotes a property later added to the RTF spec,
+	//	the reason being that older RTF readers would ignore keywords prefixed with the asterisk.
+	
+	//	This causes images written by Microsoft Word not showing up, since it writes stuff like this:
+	
+	/*
+	
+		{\*\shppict{\pict
+				
+			{\*\picprop \shplid # {\sp{\sn … }{\sv # }} …}
+			\picscalex# \picscaley# \piccropl# \piccropr#, \piccropt#, \piccropb# \picw# \pich# \picwgoal# \pichgoal#
+			\pngblip \bliptag# {\*\blipuid # }
+
+			<PNG Data in Hex>
+			
+		}}
+		
+		{\nonshppict{\pict
+			
+			\picscalex# \picscaley# \piccropl# \piccropr# \piccropt# \piccropb# \picw# \pich# \picwgoal# \pichgoal#
+			\wmetafile#
+			\bliptag# \blipupi# {\*\blipuid <data, 32 bytes> }
+			
+			<WMF Data in Hex>
+			
+		}}
+	
+	*/
+	
+	//	Per RTF 1.5 specification, RTF image entities that Word exports holds TWO image entities, while the first one is what Words uses,
+	//	and the second one contains the “normal” WMF/EMF-based image for compatibility.
+	
+	//	We’re not interested in the WMF/EMF version right now.
+	//	Since the * keyword precludes the pict keyword, the actual hex string is thrown away by default.
+	//	So, undo the potential discard.
+	
+	_currentState.alternateDestination = imageDataString;
+	//	_currentState->_flags.discardText = NO;	-> we undo the skipping in shppict, and skips in nonshppict	
+	
+	[self _parseRTFGroupWithSemicolonAction:nil];
+	
+	NSError *decodingError = nil;
+	NSData *imageData = [NSData dataWithHexString:imageDataString error:&decodingError];
+	if (!imageData)
+		NSLog(@"Error decoding: %@", decodingError);
+
+	OFFileWrapper *fileWrapper = [[[OFFileWrapper alloc] initRegularFileWithContents:imageData] autorelease];
+	OATextAttachment *textAttachment = [[[OATextAttachment alloc] initWithFileWrapper:fileWrapper] autorelease];
+	
+	CFDictionaryRef actualSizeRep = CGSizeCreateDictionaryRepresentation((CGSize) {
+		introspectedState.actualImageWidth,
+		introspectedState.actualImageHeight
+	});
+	
+	CFDictionaryRef desiredSizeRep = CGSizeCreateDictionaryRepresentation((CGSize) {
+		introspectedState.desiredImageWidth,
+		introspectedState.desiredImageHeight
+	});
+	
+	textAttachment.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+		[NSNumber numberWithInt:introspectedState.imageType], @"imageType",
+		actualSizeRep, @"actualSize",
+		desiredSizeRep, @"desiredSize",
+	nil];
+	
+	if (actualSizeRep)
+		CFRelease(actualSizeRep);
+	
+	if (desiredSizeRep)
+		CFRelease(desiredSizeRep);
+	
+	NSString *attachmentString = [NSString stringWithCharacter:(unichar)OAAttachmentCharacter];
+	NSDictionary *attachmentStringAttributes = [NSDictionary dictionaryWithObject:textAttachment forKey:OAAttachmentAttributeName];
+	
+	if (_currentState->_flags.discardText)
+		return;
+
+	NSMutableString *currentAlternateDestination = _currentState->_alternateDestination;
+	if (currentAlternateDestination) {
+		[currentAlternateDestination appendString:attachmentString];
+	} else {
+		[_attributedString appendString:attachmentString attributes:attachmentStringAttributes];
+	}
+
+}
+
+- (void) _actionImageFormatWMF;
+{
+	_currentState.imageType = 1;
+}
+
+- (void) _actionImageFormatJPEG;
+{
+	_currentState.imageType = 2;
+}
+
+- (void) _actionImageFormatPNG;
+{
+	_currentState.imageType = 3;
+}
+
+- (void) _actionReadImageHeightValue:(long)actualHeight;
+{
+	_currentState.actualImageHeight = actualHeight;
+}
+
+- (void) _actionReadImageWidthValue:(long)actualWidth;
+{
+	_currentState.actualImageWidth = actualWidth;
+}
+
+- (void) _actionReadDesiredImageWidthValue:(long)desiredWidth;
+{
+	_currentState.desiredImageWidth = desiredWidth;
+}
+
+- (void) _actionReadDesiredImageHeightValue:(long)desiredHeight;
+{
+	_currentState.desiredImageHeight = desiredHeight;
 }
 
 #pragma mark -
@@ -717,7 +899,7 @@ static NSMutableDictionary *KeywordActions;
 }
 
 - (void)_parseHexByte;
-{
+{	
     UInt8 hexBytes[2];
     CFIndex numBytes = 0;
     hexBytes[numBytes++] = [_scanner scanHexadecimalNumberMaximumDigits:2];
@@ -1027,6 +1209,56 @@ static NSMutableDictionary *KeywordActions;
     _paragraph.rightIndent = newValue;
 
     [self _resetCache];
+}
+
+- (long int) actualImageWidth;
+{
+	return _image.actualWidth;
+}
+
+- (void) setActualImageWidth:(long)newActualImageWidth;
+{
+	_image.actualWidth = newActualImageWidth;
+}
+
+- (long int) actualImageHeight;
+{
+	return _image.actualHeight;
+}
+
+- (void) setActualImageHeight:(long)newActualImageHeight
+{
+	_image.actualHeight = newActualImageHeight;
+}
+
+- (long int) desiredImageWidth;
+{
+	return _image.desiredWidth;
+}
+
+- (void) setDesiredImageWidth:(long)newDesiredImageWidth;
+{
+	_image.desiredWidth = newDesiredImageWidth;
+}
+
+- (long int) desiredImageHeight;
+{
+	return _image.desiredHeight;
+}
+
+- (void) setDesiredImageHeight:(long)newDesiredImageHeight;
+{
+	_image.desiredHeight = newDesiredImageHeight;
+}
+
+- (int) imageType;
+{
+	return _image.type;
+}
+
+- (void) setImageType:(int)newImageType;
+{
+	_image.type = newImageType;
 }
 
 #pragma mark -

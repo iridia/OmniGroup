@@ -9,10 +9,15 @@
 
 #import <OmniFoundation/OFDataBuffer.h>
 #import <OmniFoundation/OFStringScanner.h>
+#import <OmniFoundation/NSData-OFEncoding.h>
 #import <OmniFoundation/NSDictionary-OFExtensions.h>
 #import <OmniFoundation/NSAttributedString-OFExtensions.h>
 #import <OmniAppKit/OAFontDescriptor.h>
 #import <OmniAppKit/OATextAttributes.h>
+
+#import <OmniAppKit/OATextStorage.h>
+#import <OmniAppKit/OATextAttachment.h>
+#import <OmniFoundation/OFFileWrapper.h>
 
 #if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
 #import <CoreText/CTParagraphStyle.h>
@@ -41,6 +46,12 @@ RCS_ID("$Id$");
 
 - (id)initWithColor:(id)color;
 - (void)writeToDataBuffer:(OFDataBuffer *)dataBuffer;
+
+@end
+
+@interface OATextAttachment (OUIRTFWriter)
+
+- (void) _writeImageRTFGroupInDataBuffer:(OFDataBuffer *)buffer;
 
 @end
 
@@ -324,10 +335,16 @@ static const struct {
 - (void)_writeAttributes:(NSDictionary *)newAttributes beginningOfParagraph:(BOOL)beginningOfParagraph;
 {
     OMNI_POOL_START {
-        [self _writeFontAttributes:newAttributes];
+        
+				[self _writeFontAttributes:newAttributes];
         [self _writeColorAttributes:newAttributes];
         if (beginningOfParagraph)
             [self _writeParagraphAttributes:newAttributes];
+				
+				OATextAttachment *attachment = [newAttributes objectForKey:OAAttachmentAttributeName];
+				if (attachment)
+					[attachment _writeImageRTFGroupInDataBuffer:_dataBuffer];
+				
     } OMNI_POOL_END;
 }
 
@@ -542,5 +559,67 @@ static inline void writeString(OFDataBuffer *dataBuffer, NSString *string)
     // We are immutable!
     return [self retain];
 }
+
+@end
+
+
+@implementation OATextAttachment (OUIRTFWriter)
+
+- (void) _writeImageRTFGroupInDataBuffer:(OFDataBuffer *)buffer {
+	
+	NSData *writtenImageData = [self.fileWrapper regularFileContents];
+	
+	//	NSLog(@"write image data <%@: 0x%x> (%ld bytes) into buffer", NSStringFromClass([writtenImageData class]), (unsigned int)writtenImageData, [writtenImageData length]);
+	
+	NSDictionary *userInfo = [self userInfo];
+	NSDictionary *desiredSizeRep = [userInfo objectForKey:@"desiredSize"];
+	NSDictionary *actualSizeRep = [userInfo objectForKey:@"actualSize"];
+	
+	if (!actualSizeRep)
+		actualSizeRep = desiredSizeRep;
+		
+	int imageType = [[userInfo objectForKey:@"imageType"] intValue];
+	
+	CGSize desiredSize; 
+	CGSizeMakeWithDictionaryRepresentation((CFDictionaryRef)desiredSizeRep, &desiredSize);
+	
+	CGSize actualSize;
+	CGSizeMakeWithDictionaryRepresentation((CFDictionaryRef)actualSizeRep, &actualSize);
+	
+	OFDataBufferAppendCString(buffer, "{\\pict");
+	OFDataBufferAppendCString(buffer, "\n");
+	
+	switch (imageType) {
+		case 1: {	//	WMF			
+			OFDataBufferAppendCString(buffer, "\\wmetafile");
+			OFDataBufferAppendInteger(buffer, 8);	//	assume MM_ANISOTROPIC
+			break;
+		}
+		case 2: {	//	JPEG
+			OFDataBufferAppendCString(buffer, "\\jpegblip");
+			break;
+		}
+		case 3: {	//	PNG
+			OFDataBufferAppendCString(buffer, "\\pngblip");
+			break;
+		}
+	}
+	
+	OFDataBufferAppendCString(buffer, "\\picw");
+	OFDataBufferAppendInteger(buffer, (int)(roundf(actualSize.width)));
+	OFDataBufferAppendCString(buffer, "\\pich");
+	OFDataBufferAppendInteger(buffer, (int)(roundf(actualSize.height)));
+	
+	OFDataBufferAppendCString(buffer, "\\picwgoal");
+	OFDataBufferAppendInteger(buffer, (int)(roundf(desiredSize.width)));
+	OFDataBufferAppendCString(buffer, "\\pichgoal");
+	OFDataBufferAppendInteger(buffer, (int)(roundf(desiredSize.height)));
+	
+	OFDataBufferAppendCString(buffer, "\n");
+
+	OFDataBufferAppendCString(buffer, [[writtenImageData unadornedLowercaseHexString] cStringUsingEncoding:NSUTF8StringEncoding]);
+	OFDataBufferAppendCString(buffer, "}\n");
+	
+};
 
 @end
