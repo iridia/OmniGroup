@@ -590,16 +590,16 @@ static inline void writeString(OFDataBuffer *dataBuffer, NSString *string)
 	OFDataBufferAppendCString(buffer, "\n");
 	
 	switch (imageType) {
-		case 0: {	//	WMF			
+		case 1: {	//	WMF			
 			OFDataBufferAppendCString(buffer, "\\wmetafile");
 			OFDataBufferAppendInteger(buffer, 8);	//	assume MM_ANISOTROPIC
 			break;
 		}
-		case 1: {	//	JPEG
+		case 2: {	//	JPEG
 			OFDataBufferAppendCString(buffer, "\\jpegblip");
 			break;
 		}
-		case 2: {	//	PNG
+		case 3: {	//	PNG
 			OFDataBufferAppendCString(buffer, "\\pngblip");
 			break;
 		}
