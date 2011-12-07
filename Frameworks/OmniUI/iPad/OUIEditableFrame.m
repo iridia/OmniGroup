@@ -1569,11 +1569,9 @@ static BOOL _recognizerTouchedView(UIGestureRecognizer *recognizer, UIView *view
         
         [_selectionContextMenu setTargetRect:selectionRectangle inView:self];
 				
-				NSLog(@"Menu target rect %@ in view %@", NSStringFromCGRect(selectionRectangle), self);
-        
         if (!alreadyVisible) {
             DEBUG_TEXT(@"Showing context menu");
-            [_selectionContextMenu setMenuVisible:YES animated:YES];
+            [_selectionContextMenu setMenuVisible:YES animated:NO];
         }
     }
 }
