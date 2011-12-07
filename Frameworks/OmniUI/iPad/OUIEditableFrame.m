@@ -1466,7 +1466,8 @@ static BOOL _recognizerTouchedView(UIGestureRecognizer *recognizer, UIView *view
             startThumb = [[OUITextThumb alloc] init];
             startThumb.isEndThumb = NO;
             startThumb.editor = self;
-            [[self _topmostView] addSubview:startThumb];
+            [self addSubview:startThumb];
+            //	[[self _topmostView] addSubview:startThumb];
             // [[startThumb gestureRecognizers] makeObjectsPerformSelector:@selector(setDelegate:) withObject:self];
         }
         caretRect = [self _caretRectForPosition:(OUEFTextPosition *)selection.start affinity:1 bloomScale:0];
@@ -1484,7 +1485,8 @@ static BOOL _recognizerTouchedView(UIGestureRecognizer *recognizer, UIView *view
             endThumb = [[OUITextThumb alloc] init];
             endThumb.isEndThumb = YES;
             endThumb.editor = self;
-            [[self _topmostView] addSubview:endThumb];
+            [self addSubview:endThumb];
+            //	[[self _topmostView] addSubview:endThumb];
             // [[endThumb gestureRecognizers] makeObjectsPerformSelector:@selector(setDelegate:) withObject:self];
         }
         caretRect = [self _caretRectForPosition:(OUEFTextPosition *)selection.end affinity:-1 bloomScale:0];
