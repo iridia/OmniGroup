@@ -112,7 +112,7 @@ static void btrace(void)
 #define OUITextLayoutDirectionBackward ((UITextLayoutDirection)UITextStorageDirectionBackward)
 
 
-@interface OUIEditableFrame (/*Private*/)
+@interface OUIEditableFrame (/*Private*/) <UIGestureRecognizerDelegate>
 - (NSUInteger)_characterIndexOfPoint:(CGPoint)tapPoint inLine:(CTLineRef)line lineOrigin:(CGPoint)lineOrigin stringRange:(NSRange)stringRange lookingForTappedGlyph:(BOOL)lookingForTappedGlyph outWasBeyondLineBounds:(BOOL *)outWasBeyondLineBounds;
 - (OUEFTextPosition *)_closestPositionToPoint:(CGPoint)viewPoint withinRange:(UITextRange *)range lookingForTappedGlyph:(BOOL)lookingForTappedGlyph wasBeyondLineBounds:(BOOL *)outWasBeyondLineBounds;
 - (CFRange)_lineRangeForStringRange:(NSRange)queryRange;
@@ -3947,14 +3947,16 @@ static BOOL includeRectsInBound(CGPoint p, CGFloat width, CGFloat trailingWS, CG
 
 - (BOOL) gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
 
+	OBPRECONDITION(gestureRecognizer);
+
 	if (![gestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]])
-	return NO;
+		return NO;
 	
 	if (startThumb && CGRectContainsPoint(startThumb.bounds, [gestureRecognizer locationInView:startThumb]))
-	return YES;
+		return YES;
 	
 	if (endThumb && CGRectContainsPoint(endThumb.bounds, [gestureRecognizer locationInView:endThumb]))
-	return YES;
+		return YES;
 	
 	return NO;
 
