@@ -16,6 +16,8 @@
 #import <OmniUI/OUIUndoIndicator.h>
 #import <OmniUI/UIView-OUIExtensions.h>
 
+#import <OmniFileStore/OFSFileInfo.h>
+
 RCS_ID("$Id$");
 
 #if 0 && defined(DEBUG)
@@ -354,7 +356,8 @@ RCS_ID("$Id$");
     
     if (![self saveToURL:url isAutosave:isAutosave error:outError]) {
         OUIDocumentProxy *currentProxy = [self proxy];
-        NSString *fileType = [[OUIAppController controller] documentTypeForURL:currentProxy.url];
+				
+				NSString *fileType = [OFSFileInfo UTIForURL:currentProxy.url];
         NSURL *newProxyURL = [[[OUIAppController controller] documentPicker] renameProxy:currentProxy toName:[currentProxy name] type:fileType];
         OUIDocumentProxy *newProxy = [[[OUIAppController controller] documentPicker] proxyWithURL:newProxyURL];
         OBASSERT(newProxy != nil);
