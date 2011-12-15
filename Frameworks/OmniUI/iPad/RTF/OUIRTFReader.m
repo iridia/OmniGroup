@@ -288,19 +288,28 @@ static NSMutableDictionary *KeywordActions;
     // Font table destination
     [self _registerKeyword:@"fonttbl" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadFontTable)] autorelease]];
     [self _registerKeyword:@"fcharset" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadFontCharacterSet:)] autorelease]];
-
-		//	Image destination
-    [self _registerKeyword:@"pict" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadImage)] autorelease]];
-    [self _registerKeyword:@"shppict" action:unskipDestinationAction];
-    [self _registerKeyword:@"nonshppict" action:skipDestinationAction];
 		
-    [self _registerKeyword:@"wmetafile" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionImageFormatWMF)] autorelease]];
-    [self _registerKeyword:@"pngblip" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionImageFormatPNG)] autorelease]];
-    [self _registerKeyword:@"jpegblip" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionImageFormatJPEG)] autorelease]];
-    [self _registerKeyword:@"picw" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadImageWidthValue:)] autorelease]];
-    [self _registerKeyword:@"pich" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadImageHeightValue:)] autorelease]];
-    [self _registerKeyword:@"picwgoal" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadDesiredImageWidthValue:)] autorelease]];
-    [self _registerKeyword:@"pichgoal" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadDesiredImageHeightValue:)] autorelease]];
+		
+		if ([[NSUserDefaults standardUserDefaults] boolForKey:@"OUIRTFImagesSupported"]) {
+		
+			//	Image destination
+			[self _registerKeyword:@"pict" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadImage)] autorelease]];
+			[self _registerKeyword:@"shppict" action:unskipDestinationAction];
+			[self _registerKeyword:@"nonshppict" action:skipDestinationAction];
+			
+			[self _registerKeyword:@"wmetafile" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionImageFormatWMF)] autorelease]];
+			[self _registerKeyword:@"pngblip" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionImageFormatPNG)] autorelease]];
+			[self _registerKeyword:@"jpegblip" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionImageFormatJPEG)] autorelease]];
+			[self _registerKeyword:@"picw" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadImageWidthValue:)] autorelease]];
+			[self _registerKeyword:@"pich" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadImageHeightValue:)] autorelease]];
+			[self _registerKeyword:@"picwgoal" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadDesiredImageWidthValue:)] autorelease]];
+			[self _registerKeyword:@"pichgoal" action:[[[OUIRTFReaderSelectorAction alloc] initWithSelector:@selector(_actionReadDesiredImageHeightValue:)] autorelease]];
+		
+		} else {
+		
+			[self _registerKeyword:@"pict" action:skipDestinationAction];
+		
+		}
 
     // Unsupported destinations
     [self _registerKeyword:@"author" action:skipDestinationAction];
