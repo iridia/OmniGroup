@@ -273,7 +273,7 @@ static void _updateWrapperNamesFromURL(OFFileWrapper *self)
         NSUInteger conflictIndex = 0;
         do {
             conflictIndex++;
-            filename = [NSString stringWithFormat:@"%u%@%@", conflictIndex, OFFileWrapperConflictMarker, childPreferredFilename];
+            filename = [NSString stringWithFormat:@"%lu%@%@", conflictIndex, OFFileWrapperConflictMarker, childPreferredFilename];
         } while ([_fileWrappers objectForKey:filename] != nil);
         child.filename = filename;
     }

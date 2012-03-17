@@ -235,7 +235,7 @@ NSString *OFXMLCreateStringInCFEncoding(NSString *sourceString, CFStringEncoding
                 ch = composedCharacters[componentIndex];
             }
 
-            [resultString appendFormat:@"&#%u;", ch];
+            [resultString appendFormat:@"&#%lu;", ch];
         }
         free(composedCharacters);
         composedCharacters = NULL;

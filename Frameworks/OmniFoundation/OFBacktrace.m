@@ -52,7 +52,7 @@ NSString *OFCopySymbolicBacktraceForNumericBacktrace(NSString *numericTrace)
     unsigned int frameIndex;
     NSMutableString *symbolicBacktrace = [[NSMutableString alloc] init];
     for (frameIndex = 0; frameIndex < frameCount; frameIndex++) {
-        [symbolicBacktrace appendFormat:@"%08u -- %s\n", callstack[frameIndex], symbols[frameIndex]];
+        [symbolicBacktrace appendFormat:@"%08lu -- %s\n", (uintptr_t)(callstack[frameIndex]), symbols[frameIndex]];
 #ifdef DEBUG
         printf("%s\n", symbols[frameIndex]);
 #endif

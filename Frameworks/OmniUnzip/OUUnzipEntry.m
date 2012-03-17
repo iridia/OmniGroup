@@ -89,7 +89,7 @@ RCS_ID("$Id$");
 
 - (NSString *)shortDescription;
 {
-    return [NSString stringWithFormat:@"<%@:%p '%@' offset:%d file number:%d>", NSStringFromClass([self class]), self, _name, _positionInFile, _fileNumber];
+    return [NSString stringWithFormat:@"<%@:%p '%@' offset:%lu file number:%lu>", NSStringFromClass([self class]), self, _name, _positionInFile, _fileNumber];
 }
 
 @end

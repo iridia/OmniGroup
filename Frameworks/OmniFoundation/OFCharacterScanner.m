@@ -844,7 +844,7 @@ readFullTokenWithDelimiterCharacter(OFCharacterScanner *self, unichar delimiterC
         [debugDictionary setObject:[NSString stringWithFormat:@"%d", scanEnd - inputBuffer] forKey:@"inputStringLength"];
         [debugDictionary setObject:[NSString stringWithFormat:@"%d", scanLocation - inputBuffer] forKey:@"inputScanLocation"];
     }
-    [debugDictionary setObject:[NSString stringWithFormat:@"%d", inputStringPosition] forKey:@"inputStringPosition"];
+    [debugDictionary setObject:[NSString stringWithFormat:@"%lu", inputStringPosition] forKey:@"inputStringPosition"];
 
     return debugDictionary;
 }

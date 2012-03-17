@@ -275,7 +275,7 @@ struct OFCharacterScanResult OFScanCharactersIntoBuffer(struct OFStringDecoderSt
             }
     }
     
-    [NSException raise:NSInvalidArgumentException format:@"Unsupported character encoding in fast string decoder: %d (%@)", state.encoding, CFStringGetNameOfEncoding(state.encoding)];
+    [NSException raise:NSInvalidArgumentException format:@"Unsupported character encoding in fast string decoder: %lu (%@)", state.encoding, CFStringGetNameOfEncoding(state.encoding)];
     /* NOT REACHED */
     return (struct OFCharacterScanResult){ };
 }
@@ -324,7 +324,7 @@ struct OFStringDecoderState OFInitialStateForEncoding(CFStringEncoding anEncodin
         return result;
     }
     
-    [NSException raise:NSInvalidArgumentException format:@"Unsupported character encoding in fast string decoder: %d (%@)", anEncoding, CFStringGetNameOfEncoding(anEncoding)];
+    [NSException raise:NSInvalidArgumentException format:@"Unsupported character encoding in fast string decoder: %lu (%@)", anEncoding, CFStringGetNameOfEncoding(anEncoding)];
     /* NOT REACHED */
     return (struct OFStringDecoderState){ };
 }

@@ -293,7 +293,7 @@ static OUIScalingView *_scalingView(OUIScalingViewController *self)
         zoomLabel = NSLocalizedStringFromTableInBundle(@"Fit", @"OmniUI", OMNI_BUNDLE, @"Overlay text when zoomed to fit screen");
     }
     else {
-        zoomLabel = [NSString stringWithFormat:@"%d%%", (NSUInteger)rint(snappedScale * 100)];
+        zoomLabel = [NSString stringWithFormat:@"%lu%%", (NSUInteger)rint(snappedScale * 100)];
     }
     
     OUIOverlayView *overlay = [OUIOverlayView sharedTemporaryOverlay];

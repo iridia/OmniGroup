@@ -56,7 +56,7 @@ RCS_ID("$Id$");
 
 - (NSString *)description
 {
-    return [NSString stringWithFormat:@"%lu/%lu", (unsigned long)index, (unsigned int)generation];
+    return [NSString stringWithFormat:@"%lu/%u", (unsigned long)index, (unsigned int)generation];
 }
 
 @end

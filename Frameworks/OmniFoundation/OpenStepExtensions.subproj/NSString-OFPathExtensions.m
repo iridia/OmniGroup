@@ -27,7 +27,7 @@ RCS_ID("$Id$")
         return self;
     
     // 0x2014 is emdash (this is more efficient than calling +emdashString and also means we don't have to pull in OFExtensions for iOS)
-    return [NSString stringWithFormat: @"%@ %C %@", last, 0x2014, prefix];
+    return [NSString stringWithFormat: @"%@ %C %@", last, (unsigned short)0x2014, prefix];
 }
 
 + (NSString *)pathSeparator;

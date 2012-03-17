@@ -228,7 +228,7 @@ static NSString *_availablePath(NSString *directory, NSString *baseName, NSStrin
             if (counter == 0)
                 counter = 2; // First duplicate should be "Foo 2".
             
-            fileName = [[NSString alloc] initWithFormat:@"%@ %d.%@", baseName, counter, extension];
+            fileName = [[NSString alloc] initWithFormat:@"%@ %lu.%@", baseName, counter, extension];
             counter++;
             
             NSString *path = [directory stringByAppendingPathComponent:fileName];

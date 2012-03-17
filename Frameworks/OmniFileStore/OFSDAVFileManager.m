@@ -82,6 +82,7 @@ static NSString *OFSDAVHardwareModel(void)
     }
     
     NSString *hardwareModel = NSMakeCollectable(CFStringCreateWithCStringNoCopy(kCFAllocatorDefault, value, kCFStringEncodingUTF8, kCFAllocatorMalloc));
+		free(value);
     
     return [hardwareModel autorelease];
 }

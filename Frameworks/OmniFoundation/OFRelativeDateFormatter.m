@@ -63,8 +63,8 @@ static NSString *truncatedTimeString(NSDateComponents *comps, NSDateComponents *
     if (hour > 12)
 	hour-=12;
     NSString *meridian = ([comps hour] < 12) ? @"a" : @"p";
-    NSString *mins = [NSString stringWithFormat:@":%02d", [comps minute]];
-    NSString *timeString = [NSString stringWithFormat:@"%d", hour];
+    NSString *mins = [NSString stringWithFormat:@":%02ld", [comps minute]];
+    NSString *timeString = [NSString stringWithFormat:@"%ld", hour];
     if ([comps minute] != 0)
 	timeString = [timeString stringByAppendingString:mins];
     timeString = [timeString stringByAppendingString:meridian];

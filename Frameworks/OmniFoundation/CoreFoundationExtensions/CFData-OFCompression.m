@@ -538,7 +538,7 @@ static Boolean handleRFC1952MemberBody(OFDataBuffer *outputDataBuffer,
         storedLength = unpackLE32(trailerStart + 4);
         
         if (dataCRC != storedCRC) {
-            OFZlibError(compressing, [NSString stringWithFormat:@"CRC error: stored CRC (%08X) does not match computed CRC (%08X)", storedCRC, dataCRC], 0, NULL, outError);
+            OFZlibError(compressing, [NSString stringWithFormat:@"CRC error: stored CRC (%08X) does not match computed CRC (%08lX)", storedCRC, dataCRC], 0, NULL, outError);
             return FALSE;
         }
         

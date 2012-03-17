@@ -149,7 +149,7 @@ void OFSFileManagerSplitNameAndCounter(NSString *originalName, NSString **outNam
             if (counter == 0)
                 counter = 2; // First duplicate should be "Foo 2".
             
-            fileName = [[NSString alloc] initWithFormat:@"%@ %d.%@", name, counter, extension];
+            fileName = [[NSString alloc] initWithFormat:@"%@ %lu.%@", name, counter, extension];
             counter++;
             
             urlCheck = isFileURL ? OFSFileURLRelativeToDirectoryURL(directoryURL, fileName) : OFSURLRelativeToDirectoryURL(directoryURL, [fileName stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]);

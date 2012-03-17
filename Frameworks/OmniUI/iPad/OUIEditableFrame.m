@@ -4470,16 +4470,19 @@ BOOL OUITextLayoutDrawRunBackgrounds(CGContextRef ctx, CTFrameRef drawnFrame, NS
     [self setNeedsLayout];
 }
 
-- (void)_moveInDirection:(UITextLayoutDirection)direction
+- (void)_moveInDirection:(UITextLayoutDirection)inDirection
 {
     UITextRange *selectionRange = self.selectedTextRange;
     UITextPosition *positionToSelect;
     
     if (selectionRange.isEmpty) {
-        positionToSelect = [self positionFromPosition:selectionRange.start inDirection:direction offset:1];
+        positionToSelect = [self positionFromPosition:selectionRange.start inDirection:inDirection offset:1];
     } else {
         // Select the beginning or end of the range
         // TODO: Appropriately map right/left to start/end based on text direction
+				
+				NSUInteger direction = (NSUInteger)inDirection;
+				
         switch (direction) {
             case OUITextLayoutDirectionForward:
             case UITextLayoutDirectionRight:

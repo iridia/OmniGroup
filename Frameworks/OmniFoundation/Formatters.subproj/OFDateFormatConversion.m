@@ -264,7 +264,7 @@ NSString *OFOldDateFormatStringForFormatString(NSString *newFormat)
                 if (characterCount >= 3)
                     [result appendString:@"%j"];
                 else
-                    [result appendFormat:@"%%%dj", characterCount];
+                    [result appendFormat:@"%%%luj", characterCount];
                 break;
             case 'E': // day name of week
                 if (characterCount <= 3)

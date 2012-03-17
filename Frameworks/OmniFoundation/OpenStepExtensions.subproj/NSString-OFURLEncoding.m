@@ -131,7 +131,7 @@ static NSString *hexPairInserter(NSString *string, NSRange *defRange, void *cont
 {
     unichar deferential = [string characterAtIndex:defRange->location];
     defRange->length = 1;
-    return [NSString stringWithFormat:@"%%02X", OFByteForDeferredDecodedCharacter(deferential)];
+    return [NSString stringWithFormat:@"%02X", OFByteForDeferredDecodedCharacter(deferential)];
 }
 
 + (NSString *)decodeURLString:(NSString *)encodedString encoding:(CFStringEncoding)thisUrlEncoding;

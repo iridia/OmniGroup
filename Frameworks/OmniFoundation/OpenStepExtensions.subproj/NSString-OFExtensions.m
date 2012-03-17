@@ -90,7 +90,7 @@ static NSCharacterSet *nonAtomCharsExceptLWSP = nil;
     if (encodingName != nil && ![encodingName hasPrefix:@"x-"])
         return [@"iana " stringByAppendingString:encodingName];
 
-    return [NSString stringWithFormat:@"cf %d", anEncoding];
+    return [NSString stringWithFormat:@"cf %lu", anEncoding];
 }
 
 + (NSString *)abbreviatedStringForBytes:(unsigned long long)bytes;
@@ -285,7 +285,7 @@ static NSCharacterSet *nonAtomCharsExceptLWSP = nil;
         else if ([numberOFCharacterSet characterIsMember:peekedChar])
             currentOFCharacterSet = numberOFCharacterSet;
         else {
-            [NSException raise:NSInvalidArgumentException format:@"Character: %@, at index: %d, not found in lowercase, uppercase, or decimal digit character sets", [NSString stringWithCharacter:peekedChar], scannerScanLocation];
+            [NSException raise:NSInvalidArgumentException format:@"Character: %@, at index: %lu, not found in lowercase, uppercase, or decimal digit character sets", [NSString stringWithCharacter:peekedChar], scannerScanLocation(scanner)];
         }
 
         if (scannerScanUpToCharacterNotInOFCharacterSet(scanner, currentOFCharacterSet)) {
@@ -480,7 +480,7 @@ static NSCharacterSet *nonAtomCharsExceptLWSP = nil;
             [resultString appendString:[self substringWithRange:beforeMatchRange]];
 
         if (occurranceIndex >= sourceCount) {
-            [NSException raise:NSInvalidArgumentException format:@"The string being scanned has more occurrances of the target string than the source array has items (scannedString = %@, targetString = %@, sourceArray = %@)."];
+            [NSException raise:NSInvalidArgumentException format:@"The string being scanned has more occurrances of the target string than the source array has items (scannedString = %@, targetString = %@, sourceArray = %@).", self, targetString, sourceArray];
         }
         
         NSString *itemDescription = [[sourceArray objectAtIndex:occurranceIndex] description];
@@ -505,7 +505,7 @@ static NSCharacterSet *nonAtomCharsExceptLWSP = nil;
         return [[self retain] autorelease];
 
     if (!substringLength)
-        [NSException raise:NSInvalidArgumentException format:@"-[%@ %@], substringLength must be non-zero.", NSStringFromClass(isa), NSStringFromSelector(_cmd), substringLength];
+        [NSException raise:NSInvalidArgumentException format:@"-[%@ %@], substringLength must be non-zero.", NSStringFromClass(isa), NSStringFromSelector(_cmd)];
     
     NSUInteger offset = 0;
     NSMutableString *result = [NSMutableString string];
