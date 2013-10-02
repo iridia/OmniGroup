@@ -19,4 +19,4 @@
 - (void)autoSynchronize;
 @end
 
-__private_extern__ NSString * const OFUserDefaultsRegistrationItemName; // Needed by OFBundleRegistry
+__attribute__((visibility("hidden"))) NSString * const OFUserDefaultsRegistrationItemName; // Needed by OFBundleRegistry

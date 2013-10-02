@@ -38,7 +38,7 @@ RCS_ID("$Id$");
 
 @end
 
-@interface OUIRTFColorTableEntry : OFObject
+@interface OUIRTFColorTableEntry : OFObject <NSCopying>
 {
 @private
     int red, green, blue;
@@ -544,7 +544,7 @@ static inline void writeString(OFDataBuffer *dataBuffer, NSString *string)
 - (BOOL)isEqual:(id)object;
 {
     OUIRTFColorTableEntry *otherEntry = object;
-    if (otherEntry->isa != isa)
+    if (object_getClass(otherEntry) != object_getClass(self))
         return NO;
     return otherEntry->red == red && otherEntry->green == green && otherEntry->blue == blue;
 }

@@ -441,7 +441,7 @@ const CGFloat OUIWebDAVSetupFooterHeight = 50;
         url = [NSURL URLWithString:[@"http://" stringByAppendingString:webdavString]];
 
     NSString *scheme = [url scheme];
-    if (OFNOTEQUAL(scheme, @"http") && OFNOTEQUAL(scheme, @"https"))
+    if (![scheme isEqualToString:@"http"] && [scheme isEqualToString:@"https"])
         return nil;
 
     if ([NSString isEmptyString:[url host]])

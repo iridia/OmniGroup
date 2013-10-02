@@ -505,7 +505,7 @@ static NSCharacterSet *nonAtomCharsExceptLWSP = nil;
         return [[self retain] autorelease];
 
     if (!substringLength)
-        [NSException raise:NSInvalidArgumentException format:@"-[%@ %@], substringLength must be non-zero.", NSStringFromClass(isa), NSStringFromSelector(_cmd)];
+        [NSException raise:NSInvalidArgumentException format:@"-[%@ %@], substringLength must be non-zero.", NSStringFromClass(self.class), NSStringFromSelector(_cmd)];
     
     NSUInteger offset = 0;
     NSMutableString *result = [NSMutableString string];
