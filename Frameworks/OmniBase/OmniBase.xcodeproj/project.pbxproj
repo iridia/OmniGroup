@@ -121,7 +121,7 @@
 		347049740CFB6612007025F7 /* NSError-OBExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSError-OBExtensions.m"; sourceTree = "<group>"; };
 		34759FE50DE22FDD00FB73CC /* OBTestCase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OBTestCase.h; sourceTree = "<group>"; };
 		34759FE60DE22FDD00FB73CC /* OBTestCase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OBTestCase.m; sourceTree = "<group>"; };
-		34778CD211810BE700EC28C1 /* OBLoadBundle */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "compiled.mach-o.executable"; path = OBLoadBundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		34778CD211810BE700EC28C1 /* OBLoadBundle */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = OBLoadBundle; sourceTree = BUILT_PRODUCTS_DIR; };
 		34778CE111810C1800EC28C1 /* OBLoadBundle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OBLoadBundle.m; sourceTree = "<group>"; };
 		34A159450564081F0097A113 /* OmniBase.order */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OmniBase.order; sourceTree = "<group>"; };
 		34BBACA80BA76AA2002DA71E /* objc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = objc.h; sourceTree = "<group>"; };
@@ -443,6 +443,8 @@
 /* Begin PBXProject section */
 		00E51C1BFE8AAE2511C9CC38 /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+			};
 			buildConfigurationList = 4AA3CEDC08A01555004389CD /* Build configuration list for PBXProject "OmniBase" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
